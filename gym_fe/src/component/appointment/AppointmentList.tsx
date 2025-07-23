@@ -122,7 +122,11 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
 
                   <div className="flex items-center gap-3 text-gray-600">
                     <Calendar className="w-4 h-4" />
-                    <span className="text-sm">{appointment.appointmentdate}</span>
+                    <span className="text-sm">
+                      {appointment.appointmentdate
+                        ? new Date(appointment.appointmentdate).toISOString().split('T')[0]
+                        : ''}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3 text-gray-600">
