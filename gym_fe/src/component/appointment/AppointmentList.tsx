@@ -104,8 +104,8 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
             <div key={appointment.appointmentid} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{appointment.appointmentname}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <h3 className="text-lg font-semibold text-gray-900 truncate">{appointment.appointmentname}</h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                     appointment.status
                       ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
