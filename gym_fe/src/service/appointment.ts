@@ -1,70 +1,6 @@
+import BaseService from './baseService';
+
 // Mock data for the appointment management system
-
-export const mockCustomers = [
-  {
-    customerid: '1',
-    customername: 'Nguyễn Văn An',
-    email: 'nguyenvanan@email.com',
-    phone: '0901234567'
-  },
-  {
-    customerid: '2',
-    customername: 'Trần Thị Bình',
-    email: 'tranthibinh@email.com',
-    phone: '0902345678'
-  },
-  {
-    customerid: '3',
-    customername: 'Lê Văn Cường',
-    email: 'levancuong@email.com',
-    phone: '0903456789'
-  },
-  {
-    customerid: '4',
-    customername: 'Phạm Thị Dung',
-    email: 'phamthidung@email.com',
-    phone: '0904567890'
-  },
-  {
-    customerid: '5',
-    customername: 'Hoàng Văn Em',
-    email: 'hoangvanem@email.com',
-    phone: '0905678901'
-  }
-];
-
-export const mockServices = [
-  {
-    serviceid: '1',
-    servicename: 'Cắt tóc nam',
-    price: '150000',
-    duration: 30
-  },
-  {
-    serviceid: '2',
-    servicename: 'Cắt tóc nữ',
-    price: '200000',
-    duration: 45
-  },
-  {
-    serviceid: '3',
-    servicename: 'Nhuộm tóc',
-    price: '500000',
-    duration: 120
-  },
-  {
-    serviceid: '4',
-    servicename: 'Uốn tóc',
-    price: '800000',
-    duration: 180
-  },
-  {
-    serviceid: '5',
-    servicename: 'Gội đầu massage',
-    price: '100000',
-    duration: 20
-  }
-];
 
 export const mockAppointments = [
   {
@@ -134,3 +70,39 @@ export const mockAppointments = [
     scheduleid: 'sch-6'
   }
 ];
+
+const AppointmentService = new BaseService<any>('http://localhost:5231/api/appointment');
+
+export async function createAppointment(appointment: any) {
+  return AppointmentService.create(appointment);
+}
+
+export async function fetchSchedules() {
+  const res = await fetch('http://localhost:5231/api/schedule');
+  if (!res.ok) throw new Error('Failed to fetch schedules');
+  return await res.json();
+}
+
+export async function fetchStatuses() {
+  const res = await fetch('http://localhost:5231/api/status');
+  if (!res.ok) throw new Error('Failed to fetch statuses');
+  return await res.json();
+}
+
+export async function fetchCustomers() {
+  const res = await fetch('http://localhost:5231/api/customer');
+  if (!res.ok) throw new Error('Failed to fetch customers');
+  return await res.json();
+}
+
+export async function fetchServices() {
+  const res = await fetch('http://localhost:5231/api/service');
+  if (!res.ok) throw new Error('Failed to fetch services');
+  return await res.json();
+}
+
+export async function fetchAppointments() {
+  const res = await fetch('http://localhost:5231/api/appointment');
+  if (!res.ok) throw new Error('Failed to fetch appointments');
+  return await res.json();
+}
