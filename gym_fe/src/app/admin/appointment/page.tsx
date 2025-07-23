@@ -1,43 +1,59 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Search, Filter, Clock, Users, DollarSign, CheckCircle } from 'lucide-react';
-import Dashboard from '../../../component/appointment/Dashboard';
-import AppointmentCalendar from '../../../component/appointment/AppointmentCalendar';
-import AppointmentList from '../../../component/appointment/AppointmentList';
+import React, { useState } from 'react';
+
+import { Plus } from 'lucide-react';
+
+import AppointmentCalendar
+  from '../../../component/appointment/AppointmentCalendar';
 import AppointmentForm from '../../../component/appointment/AppointmentForm';
+import AppointmentList from '../../../component/appointment/AppointmentList';
+import Dashboard from '../../../component/appointment/Dashboard';
 import Sidebar from '../../../component/appointment/Sidebar';
-import { mockAppointments, mockCustomers, mockServices } from '../../../service/appointment';
+import {
+  createAppointment,
+  fetchAppointments,
+  fetchCustomers,
+  fetchServices,
+} from '../../../service/appointment';
 
 function Appointment() {
   const [currentView, setCurrentView] = useState('dashboard');
-  const [appointments, setAppointments] = useState(mockAppointments);
-  const [customers] = useState(mockCustomers);
-  const [services] = useState(mockServices);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
-  const handleCreateAppointment = (appointmentData:any) => {
-    const newAppointment = {
-      ...appointmentData,
-      appointmentid: crypto.randomUUID(),
-    };
-    setAppointments([...appointments, newAppointment]);
-    setShowForm(false);
+  React.useEffect(() => {
+    // Fetch customers, services, and appointments from backend
+    fetchCustomers().then(setCustomers);
+    fetchServices().then(setServices);
+    fetchAppointments().then(setAppointments);
+  }, []);
+
+  const handleCreateAppointment = async (appointmentData: any) => {
+    try {
+      const newAppointment = await createAppointment(appointmentData);
+      setAppointments([...appointments, newAppointment]);
+      setShowForm(false);
+    } catch (error) {
+      alert('Failed to create appointment');
+    }
   };
 
-  const handleUpdateAppointment = (appointmentData:any) => {
-    setAppointments(appointments.map(apt => 
+  const handleUpdateAppointment = (appointmentData: any) => {
+    setAppointments(appointments.map(apt =>
       apt.appointmentid === appointmentData.appointmentid ? appointmentData : apt
     ));
     setShowForm(false);
     setSelectedAppointment(null);
   };
 
-  const handleDeleteAppointment = (appointmentId:any) => {
+  const handleDeleteAppointment = (appointmentId: any) => {
     setAppointments(appointments.filter(apt => apt.appointmentid !== appointmentId));
   };
 
-  const handleEditAppointment = (appointment:any) => {
+  const handleEditAppointment = (appointment: any) => {
     setSelectedAppointment(appointment);
     setShowForm(true);
   };
@@ -48,7 +64,7 @@ function Appointment() {
         return <Dashboard appointments={appointments} customers={customers} services={services} />;
       case 'calendar':
         return (
-          <AppointmentCalendar 
+          <AppointmentCalendar
             appointments={appointments}
             onEditAppointment={handleEditAppointment}
             onDeleteAppointment={handleDeleteAppointment}
@@ -56,7 +72,7 @@ function Appointment() {
         );
       case 'appointments':
         return (
-          <AppointmentList 
+          <AppointmentList
             appointments={appointments}
             customers={customers}
             services={services}
@@ -72,7 +88,7 @@ function Appointment() {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
@@ -112,8 +128,6 @@ function Appointment() {
       {showForm && (
         <AppointmentForm
           appointment={selectedAppointment}
-          customers={customers}
-          services={services}
           onSave={selectedAppointment ? handleUpdateAppointment : handleCreateAppointment}
           onCancel={() => {
             setShowForm(false);

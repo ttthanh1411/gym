@@ -1,18 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, User, DollarSign, FileText } from 'lucide-react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  FileText,
+  User,
+  X,
+} from 'lucide-react';
+
+import {
+  fetchCustomers,
+  fetchSchedules,
+  fetchServices,
+  fetchStatuses,
+} from '../../service/appointment';
 
 interface AppointmentFormProps {
   appointment?: any;
-  customers: any[];
-  services: any[];
   onSave: (appointment: any) => void;
   onCancel: () => void;
 }
 
+function formatTime(ts: string) {
+  // Assumes ts is like "2024-07-01T08:00:00"
+  return ts ? ts.split('T')[1]?.slice(0, 5) : '';
+}
+
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
   appointment,
-  customers,
-  services,
   onSave,
   onCancel
 }) => {
@@ -23,8 +42,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     price: '',
     customerid: '',
     serviceid: '',
-    status: false
+    scheduleid: '',
+    statusid: ''
   });
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [statuses, setStatuses] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
     if (appointment) {
@@ -35,20 +59,36 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         price: appointment.price,
         customerid: appointment.customerid,
         serviceid: appointment.serviceid,
-        status: appointment.status
+        scheduleid: appointment.scheduleid,
+        statusid: appointment.statusid
       });
     }
+    console.log('Fetching schedules...');
+    fetchSchedules().then(data => {
+      console.log('Fetched schedules:', data);
+      setSchedules(data);
+    });
+    fetchStatuses().then(setStatuses);
+    fetchCustomers().then(setCustomers);
+    fetchServices().then(setServices);
   }, [appointment]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Format date and time as ISO strings for backend
     const appointmentData = {
       ...formData,
+      appointmentdate: formData.appointmentdate + 'T00:00:00',
+      appointmenttime: formData.appointmenttime + ':00', // send as HH:mm:ss
       appointmentid: appointment?.appointmentid,
-      scheduleid: appointment?.scheduleid || crypto.randomUUID(),
+      scheduleid: formData.scheduleid || '',
+      statusid: formData.statusid || '',
       price: parseFloat(formData.price).toString()
     };
+
+    // Debug log to verify payload
+    console.log('Submitting appointment payload:', JSON.stringify(appointmentData, null, 2));
 
     onSave(appointmentData);
   };
@@ -107,11 +147,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               required
             >
               <option value="">Chọn khách hàng</option>
-              {customers.map((customer) => (
-                <option key={customer.customerid} value={customer.customerid}>
-                  {customer.customername} - {customer.email}
-                </option>
-              ))}
+              {customers
+                .filter((customer) => !!customer.customerid || !!customer.customerID)
+                .map((customer) => (
+                  <option key={customer.customerid || customer.customerID} value={customer.customerid || customer.customerID}>
+                    {(customer.name || customer.customername)} - {customer.email}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -127,11 +169,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               required
             >
               <option value="">Chọn dịch vụ</option>
-              {services.map((service) => (
-                <option key={service.serviceid} value={service.serviceid}>
-                  {service.servicename} - {parseInt(service.price).toLocaleString('vi-VN')}đ
-                </option>
-              ))}
+              {services
+                .filter((service) => !!service.serviceid || !!service.serviceID)
+                .map((service) => (
+                  <option key={service.serviceid || service.serviceID} value={service.serviceid || service.serviceID}>
+                    {(service.servicename || service.serviceName)}
+                    {service.serviceprice && !isNaN(parseInt(service.serviceprice)) ? ` - ${parseInt(service.serviceprice).toLocaleString('vi-VN')}đ` : ''}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -185,17 +230,46 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             />
           </div>
 
+          {/* Schedule */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Lịch Hẹn
+            </label>
+            <select
+              value={formData.scheduleid}
+              onChange={(e) => setFormData({ ...formData, scheduleid: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">Chọn lịch hẹn</option>
+              {schedules
+                .filter((s) => !!s.scheduleID || !!s.scheduleid)
+                .map((s) => (
+                  <option key={s.scheduleID || s.scheduleid} value={s.scheduleID || s.scheduleid}>
+                    {(s.dayOfWeek || s.dayofweek)} {formatTime(s.startTime || s.starttime)}-{formatTime(s.endTime || s.endtime)}
+                  </option>
+                ))}
+            </select>
+          </div>
+
           {/* Status */}
           <div>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-gray-700">Đánh dấu là hoàn thành</span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Trạng Thái
             </label>
+            <select
+              value={formData.statusid}
+              onChange={(e) => setFormData({ ...formData, statusid: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">Chọn trạng thái</option>
+              {statuses.map((s) => (
+                <option key={s.statusid} value={s.statusid}>
+                  {s.statusname}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Actions */}

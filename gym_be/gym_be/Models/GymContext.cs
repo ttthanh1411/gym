@@ -20,6 +20,8 @@ namespace gym_be.Models
 
         public DbSet<Appointment> Appointments { get; set; }
 
+        public DbSet<Status> Status { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("public");

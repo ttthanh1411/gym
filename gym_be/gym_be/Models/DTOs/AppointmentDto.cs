@@ -1,15 +1,26 @@
-﻿namespace gym_be.Models.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace gym_be.Models.DTOs
 {
     public class AppointmentDto
     {
-        public Guid AppointmentId { get; set; }
-        public string AppointmentName { get; set; }
-        public DateTime AppointmentDate { get; set; }
-        public DateTime AppointmentTime { get; set; }
-        public decimal Price { get; set; }
-        public string CustomerId { get; set; }
-        public int Status { get; set; }
-        public string ScheduleId { get; set; }
-        public string ServiceId { get; set; }
+        [JsonPropertyName("appointmentid")]
+        public Guid appointmentid { get; set; }
+        [JsonPropertyName("appointmentname")]
+        public string appointmentname { get; set; }
+        [JsonPropertyName("appointmentdate")]
+        public DateTime appointmentdate { get; set; }
+        [JsonPropertyName("appointmenttime")]
+        public TimeSpan appointmenttime { get; set; }
+        [JsonPropertyName("price")]
+        public decimal price { get; set; }
+        [JsonPropertyName("customerid")]
+        public Guid customerid { get; set; }
+        [JsonPropertyName("statusid")]
+        public Guid statusid { get; set; }
+        [JsonPropertyName("scheduleid")]
+        public Guid scheduleid { get; set; }
+        [JsonPropertyName("serviceid")]
+        public Guid serviceid { get; set; }
     }
 }

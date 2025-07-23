@@ -26,9 +26,9 @@ namespace gym_be.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetAllAppointments(int page = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetAppointments()
         {
-            var appointments = await _appointmentService.GetAllAppointmentsAsync(page, pageSize);
+            var appointments = await _appointmentService.GetAllAppointmentsAsync();
             return Ok(appointments);
         }
 
@@ -40,10 +40,14 @@ namespace gym_be.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<AppointmentDto>> AddAppointment(AppointmentDto appointmentDto)
+        public async Task<ActionResult<AppointmentDto>> AddAppointment([FromBody] AppointmentDto appointmentDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var appointment = await _appointmentService.AddAppointmentAsync(appointmentDto);
-            return CreatedAtAction(nameof(GetAppointmentById), new { id = appointment.AppointmentId }, appointment);
+            return CreatedAtAction(nameof(GetAppointmentById), new { id = appointment.appointmentid }, appointment);
         }
 
         [HttpPut("{id}")]

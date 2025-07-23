@@ -8,28 +8,28 @@ namespace gym_be.Models.Entities
     {
         [Key]
         [Column("appointmentid")]
-        public Guid AppointmentId { get; set; }
+        public Guid appointmentid { get; set; }
 
         [Column("appointmentname")]
-        public string AppointmentName { get; set; }
+        public string appointmentname { get; set; }
 
         [Column("appointmentdate")]
-        public DateTime AppointmentDate { get; set; }
+        public DateTime appointmentdate { get; set; }
 
         [Column("appointmenttime")]
-        public DateTime AppointmentTime { get; set; }
+        public TimeSpan appointmenttime { get; set; }
 
         [Column("price")]
-        public decimal Price { get; set; }
+        public decimal price { get; set; }
 
         [Column("customerid")]
-        public string CustomerId { get; set; }
+        public Guid customerid { get; set; }
 
         [Column("scheduleid")]
-        public string ScheduleId { get; set; }
+        public Guid scheduleid { get; set; }
 
         [Column("serviceid")]
-        public string ServiceId { get; set; }
+        public Guid serviceid { get; set; }
 
         public Customer Customer { get; set; }
 
@@ -37,7 +37,7 @@ namespace gym_be.Models.Entities
 
         public Service Service { get; set; }
 
-        [Column("status")]
-        public int Status { get; set; }
+        [Column("statusid")]
+        public Guid statusid { get; set; }
     }
 }
