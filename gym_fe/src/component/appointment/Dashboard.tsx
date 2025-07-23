@@ -9,7 +9,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services }) => {
   const today = new Date().toISOString().split('T')[0];
-  const todayAppointments = appointments.filter(apt => apt.appointmentdate === today);
+  const todayAppointments = appointments.filter(apt =>  apt.appointmentdate.split('T')[0] === today);
   const completedAppointments = appointments.filter(apt => apt.status);
   const totalRevenue = appointments
     .filter(apt => apt.status)

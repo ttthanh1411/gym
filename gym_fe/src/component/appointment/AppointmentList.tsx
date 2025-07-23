@@ -97,8 +97,8 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
       {/* Appointments Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredAppointments.map((appointment) => {
-          const customer = customers.find(c => c.customerid === appointment.customerid);
-          const service = services.find(s => s.serviceid === appointment.serviceid);
+          const customer = customers.find(c => c.customerID === appointment.customerid);
+          const service = services.find(s => s.serviceID === appointment.serviceid);
           
           return (
             <div key={appointment.appointmentid} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
@@ -117,7 +117,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-gray-600">
                     <User className="w-4 h-4" />
-                    <span className="text-sm">{customer?.customername || 'N/A'}</span>
+                    <span className="text-sm">{customer?.name || 'N/A'}</span>
                   </div>
 
                   <div className="flex items-center gap-3 text-gray-600">
@@ -140,7 +140,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
 
                 <div className="mt-6 pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-500">{service?.servicename || 'N/A'}</p>
+                    <p className="text-sm text-gray-500">{service?.serviceName || 'N/A'}</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => onEditAppointment(appointment)}
