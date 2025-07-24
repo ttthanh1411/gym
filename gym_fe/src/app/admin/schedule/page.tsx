@@ -1,8 +1,31 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { Calendar, Plus, Search, Filter, MoreVertical, Edit2, Trash2, Eye, X, Clock, Users, CalendarDays, CheckCircle, AlertCircle } from 'lucide-react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  AlertCircle,
+  Calendar,
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  Edit2,
+  Eye,
+  Filter,
+  MoreVertical,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
+
 import scheduleService from '../../../service/scheduleService';
-import { Schedule, ScheduleFormData } from '../../../type/schedule';
+import {
+  Schedule,
+  ScheduleFormData,
+} from '../../../type/schedule';
 
 interface ToastNotification {
     id: string;
@@ -60,11 +83,11 @@ const ScheduleManagement: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        const payload: Partial<Schedule> = {
-            dayOfWeek: formData.dayofweek,
-            maxParticipants: formData.maxparticipants,
-            startTime: new Date(formData.starttime).toISOString(),
-            endTime: new Date(formData.endtime).toISOString(),
+        const payload = {
+            dayofweek: formData.dayofweek,
+            maxparticipants: formData.maxparticipants,
+            starttime: new Date(formData.starttime).toISOString(),
+            endtime: new Date(formData.endtime).toISOString(),
         };
         try {
             if (modalMode === 'edit' && selectedSchedule) {

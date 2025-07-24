@@ -22,6 +22,6 @@ namespace gym_be.Models.Entities
         [Column("endtime")]
         public DateTime EndTime { get; set; }
 
-        public ICollection<Appointment> Appointments { get; set; }
+        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }
