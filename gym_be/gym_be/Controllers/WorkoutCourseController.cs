@@ -31,7 +31,8 @@ namespace gym_be.Controllers
                 description = c.Description,
                 personaltrainername = c.PersonalTrainerName,
                 // Add schedules: [] (empty array or real data if available)
-                schedules = c.Schedules
+                schedules = c.Schedules,
+                price = c.Price // add price
             });
             return Ok(result);
         }

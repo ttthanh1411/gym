@@ -49,6 +49,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails }) => {
             <span>{course.durationweek || course.durationWeek} weeks</span>
           </div>
         </div>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="font-semibold text-gray-700">Giá:</span>
+          <span className="text-green-600 font-bold">{course.price ? Number(course.price).toLocaleString('vi-VN') + 'đ' : '0đ'}</span>
+        </div>
         <button
           onClick={() => onViewDetails(course)}
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2"

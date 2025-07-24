@@ -135,10 +135,6 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services
                         <ClockIcon className="w-4 h-4 text-gray-500" />
                         <span>{timeStr}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-green-700 text-lg font-bold">
-                        <DollarSign className="w-5 h-5 text-green-600" />
-                        <span>{parseInt(appointment.price).toLocaleString('vi-VN')}đ</span>
-                      </div>
                     </div>
                     <div className="border-t border-gray-200 my-3"></div>
                     <div className="pl-6 italic text-gray-500 text-sm">{service?.serviceName || 'N/A'}</div>

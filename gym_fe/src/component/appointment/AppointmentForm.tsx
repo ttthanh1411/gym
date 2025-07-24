@@ -6,7 +6,6 @@ import React, {
 import {
   Calendar,
   Clock,
-  DollarSign,
   FileText,
   User,
   X,
@@ -39,7 +38,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     appointmentname: '',
     appointmentdate: '',
     appointmenttime: '',
-    price: '',
     customerid: '',
     serviceid: '',
     scheduleid: '',
@@ -56,7 +54,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         appointmentname: appointment.appointmentname,
         appointmentdate: appointment.appointmentdate,
         appointmenttime: appointment.appointmenttime,
-        price: appointment.price,
         customerid: appointment.customerid,
         serviceid: appointment.serviceid,
         scheduleid: appointment.scheduleid,
@@ -83,8 +80,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       appointmenttime: formData.appointmenttime + ':00', // send as HH:mm:ss
       appointmentid: appointment?.appointmentid,
       scheduleid: formData.scheduleid || '',
-      statusid: formData.statusid || '',
-      price: parseFloat(formData.price).toString()
+      statusid: formData.statusid || ''
     };
 
     // Debug log to verify payload
@@ -94,11 +90,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   };
 
   const handleServiceChange = (serviceid: string) => {
-    const selectedService = services.find(s => s.serviceid === serviceid);
     setFormData({
       ...formData,
-      serviceid,
-      price: selectedService?.price || formData.price
+      serviceid
     });
   };
 
@@ -212,23 +206,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             </div>
           </div>
 
-          {/* Price */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <DollarSign className="w-4 h-4 inline mr-2" />
-              Giá Tiền (VNĐ)
-            </label>
-            <input
-              type="number"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="0"
-              min="0"
-              step="1000"
-              required
-            />
-          </div>
+          {/* Remove the Price input field from the form UI */}
 
           {/* Schedule */}
           <div>
