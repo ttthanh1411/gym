@@ -25,7 +25,8 @@ namespace gym_be.Services
                 DurationWeek = course.DurationWeek,
                 Description = course.Description,
                 PersonalTrainerName = course.PersonalTrainer?.Name,
-                Schedules = course.Schedules
+                Schedules = course.Schedules,
+                Price = course.Price // map price
             }).ToList();
         }
 
@@ -44,7 +45,8 @@ namespace gym_be.Services
                 DurationWeek = course.DurationWeek,
                 Description = course.Description,
                 PersonalTrainerName = course.PersonalTrainer?.Name,
-                Schedules = course.Schedules
+                Schedules = course.Schedules,
+                Price = course.Price // add price mapping
             };
         }
 
@@ -52,30 +54,32 @@ namespace gym_be.Services
         {
             var workoutCourse = new WorkoutCourse
             {
-                CourseId = workoutCourseDto.CourseId,
+                CourseId = Guid.NewGuid(),
                 CourseName = workoutCourseDto.CourseName,
                 ImageUrl = workoutCourseDto.ImageUrl,
                 PersonalTrainerId = workoutCourseDto.PersonalTrainerId,
                 DurationWeek = workoutCourseDto.DurationWeek,
                 Description = workoutCourseDto.Description,
-                Schedules = workoutCourseDto.Schedules ?? new List<Guid>()
+                Schedules = workoutCourseDto.Schedules ?? new List<Guid>(),
+                Price = workoutCourseDto.Price // map price
             };
             await _workoutCourseRepository.CreateWorkoutCourseAsync(workoutCourse);
         }
 
         public async Task UpdateWorkoutCourseAsync(WorkoutCourseDto workoutCourseDto)
         {
-            var workoutCourse = new WorkoutCourse
+            var workoutCourse = await _workoutCourseRepository.GetWorkoutCourseByIdAsync(workoutCourseDto.CourseId);
+            if (workoutCourse != null)
             {
-                CourseId = workoutCourseDto.CourseId,
-                CourseName = workoutCourseDto.CourseName,
-                ImageUrl = workoutCourseDto.ImageUrl,
-                PersonalTrainerId = workoutCourseDto.PersonalTrainerId,
-                DurationWeek = workoutCourseDto.DurationWeek,
-                Description = workoutCourseDto.Description,
-                Schedules = workoutCourseDto.Schedules ?? new List<Guid>()
-            };
-            await _workoutCourseRepository.UpdateWorkoutCourseAsync(workoutCourse);
+                workoutCourse.CourseName = workoutCourseDto.CourseName;
+                workoutCourse.ImageUrl = workoutCourseDto.ImageUrl;
+                workoutCourse.PersonalTrainerId = workoutCourseDto.PersonalTrainerId;
+                workoutCourse.DurationWeek = workoutCourseDto.DurationWeek;
+                workoutCourse.Description = workoutCourseDto.Description;
+                workoutCourse.Schedules = workoutCourseDto.Schedules ?? new List<Guid>();
+                workoutCourse.Price = workoutCourseDto.Price; // map price
+                await _workoutCourseRepository.UpdateWorkoutCourseAsync(workoutCourse);
+            }
         }
 
         public async Task DeleteWorkoutCourseAsync(Guid courseId)

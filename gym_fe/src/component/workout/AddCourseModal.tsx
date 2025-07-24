@@ -30,9 +30,10 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     coursename: '',
     imageurl: '',
     personaltrainer: '',
-    durationweek: 1,
+    durationweek: '', // keep as string for input
     description: '',
     schedules: [] as string[],
+    price: '' // keep as string for input
   });
   const [allSchedules, setAllSchedules] = useState<any[]>([]);
 
@@ -47,19 +48,11 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
   if (!isOpen) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (e.target instanceof HTMLSelectElement && e.target.multiple) {
-      const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
-      setFormData(prev => ({ ...prev, [name]: selected }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: name === 'durationweek' ? parseInt(value) || 1 : value
-      }));
-    }
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const validateForm = () => {
@@ -108,9 +101,14 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     if (validateForm()) {
       const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
       const newCourse = {
-        ...formData,
+        coursename: formData.coursename,
+        imageurl: formData.imageurl,
+        personaltrainer: formData.personaltrainer,
+        durationweek: parseInt(formData.durationweek) || 0,
+        description: formData.description,
         trainername: selectedTrainer?.name || '',
         schedules: formData.schedules,
+        price: parseFloat(formData.price) || 0 // convert to number for backend
       };
 
       onAddCourse(newCourse);
@@ -259,6 +257,21 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
             {errors.durationweek && (
               <p className="text-red-500 text-sm mt-1">{errors.durationweek}</p>
             )}
+          </div>
+
+          {/* Price */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Giá khóa học</label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleInputChange}
+              className="w-full border rounded px-3 py-2"
+              min={0}
+              step={1000}
+              placeholder="Nhập giá khóa học (VND)"
+            />
           </div>
 
           {/* Description */}

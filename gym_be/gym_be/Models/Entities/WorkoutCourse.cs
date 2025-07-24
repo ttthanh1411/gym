@@ -28,6 +28,8 @@ public class WorkoutCourse
     [Column("description")]
     public string Description { get; set; } 
 
+    [Column("price")]
+    public decimal Price { get; set; }
     
     public Customer PersonalTrainer { get; set; } 
     [Column("schedules", TypeName = "jsonb")]
