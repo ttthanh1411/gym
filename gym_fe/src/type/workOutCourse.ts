@@ -1,9 +1,9 @@
 export interface WorkoutCourse {
   courseid: string;
   coursename: string;
-  imageurl: string;
-  personaltrainer: string;
-  durationweek: number;
+  imageUrl: string;
+  personalTrainerName: string;
+  durationWeek: number;
   description: string;
   trainername?: string;
 }

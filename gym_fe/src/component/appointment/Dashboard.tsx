@@ -1,5 +1,16 @@
 import React from 'react';
-import { Calendar, Users, DollarSign, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+
+import {
+  Calendar,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Clock,
+  Clock as ClockIcon,
+  DollarSign,
+  TrendingUp,
+  User,
+  Users,
+} from 'lucide-react';
 
 interface DashboardProps {
   appointments: any[];
@@ -9,7 +20,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services }) => {
   const today = new Date().toISOString().split('T')[0];
-  const todayAppointments = appointments.filter(apt =>  apt.appointmentdate.split('T')[0] === today);
+  const todayAppointments = appointments.filter(apt => apt.appointmentdate.split('T')[0] === today);
   const completedAppointments = appointments.filter(apt => apt.status);
   const totalRevenue = appointments
     .filter(apt => apt.status)
@@ -46,7 +57,7 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services
     }
   ];
 
-  const colorClasses : any = {
+  const colorClasses: any = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
     yellow: 'bg-yellow-500',
@@ -92,22 +103,45 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services
           <div className="p-6">
             <div className="space-y-4">
               {recentAppointments.map((appointment) => {
-                const customer = customers.find(c => c.customerid === appointment.customerid);
-                const service = services.find(s => s.serviceid === appointment.serviceid);
-                
+                const customer = customers.find(c => c.customerID === appointment.customerid || c.customerid === appointment.customerid);
+                const service = services.find(s => s.serviceID === appointment.serviceid || s.serviceid === appointment.serviceid);
+                // Format date as dd/MM/yyyy
+                const dateStr = appointment.appointmentdate ? new Date(appointment.appointmentdate).toLocaleDateString('vi-VN') : '';
+                // Format time as HH:mm
+                let timeStr = '';
+                if (appointment.appointmenttime) {
+                  if (typeof appointment.appointmenttime === 'string') {
+                    timeStr = appointment.appointmenttime.slice(0, 5);
+                  } else if (typeof appointment.appointmenttime === 'object' && appointment.appointmenttime.hours !== undefined) {
+                    timeStr = `${appointment.appointmenttime.hours.toString().padStart(2, '0')}:${appointment.appointmenttime.minutes.toString().padStart(2, '0')}`;
+                  }
+                }
                 return (
-                  <div key={appointment.appointmentid} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-4">
+                  <div key={appointment.appointmentid} className="bg-white rounded-2xl shadow border border-gray-100 hover:shadow-lg transition-all p-6 mb-4 flex flex-col">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className={`w-3 h-3 rounded-full ${appointment.status ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{appointment.appointmentname}</h4>
-                        <p className="text-sm text-gray-600">{customer?.customername} • {service?.servicename}</p>
+                      <h4 className="font-semibold text-gray-900 text-base">{appointment.appointmentname}</h4>
+                    </div>
+                    <div className="flex flex-col gap-3 pl-6">
+                      <div className="flex items-center gap-2 text-gray-700 text-sm">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <span>{customer?.name || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700 text-sm">
+                        <CalendarIcon className="w-4 h-4 text-gray-500" />
+                        <span>{dateStr}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700 text-sm">
+                        <ClockIcon className="w-4 h-4 text-gray-500" />
+                        <span>{timeStr}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-700 text-lg font-bold">
+                        <DollarSign className="w-5 h-5 text-green-600" />
+                        <span>{parseInt(appointment.price).toLocaleString('vi-VN')}đ</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{appointment.appointmentdate}</p>
-                      <p className="text-sm text-gray-600">{appointment.appointmenttime}</p>
-                    </div>
+                    <div className="border-t border-gray-200 my-3"></div>
+                    <div className="pl-6 italic text-gray-500 text-sm">{service?.serviceName || 'N/A'}</div>
                   </div>
                 );
               })}
@@ -125,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services
               {todayAppointments.length > 0 ? (
                 todayAppointments.map((appointment) => {
                   const customer = customers.find(c => c.customerid === appointment.customerid);
-                  
+
                   return (
                     <div key={appointment.appointmentid} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                       <Clock className="w-4 h-4 text-blue-600" />

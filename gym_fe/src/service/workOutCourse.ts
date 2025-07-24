@@ -1,4 +1,7 @@
-import { WorkoutCourse, PersonalTrainer } from '../type/workOutCourse';
+import {
+  PersonalTrainer,
+  WorkoutCourse,
+} from '../type/workOutCourse';
 
 export const mockTrainers: PersonalTrainer[] = [
   {
@@ -8,7 +11,7 @@ export const mockTrainers: PersonalTrainer[] = [
     experience: 5
   },
   {
-    id: '2', 
+    id: '2',
     name: 'Mike Chen',
     specialization: 'Cardio & HIIT',
     experience: 7
@@ -83,3 +86,39 @@ export const mockWorkoutCourses: WorkoutCourse[] = [
     trainername: 'Mike Chen'
   }
 ];
+
+const API_URL = 'http://localhost:5231/api/WorkoutCourse';
+
+export async function fetchWorkoutCourses() {
+  const res = await fetch(API_URL);
+  if (!res.ok) throw new Error('Failed to fetch courses');
+  return await res.json();
+}
+
+export async function createWorkoutCourse(course: Omit<WorkoutCourse, 'courseid'>) {
+  // Map frontend fields to backend fields
+  const payload = {
+    courseName: course.coursename,
+    imageUrl: course.imageurl,
+    personalTrainerId: course.personaltrainer, // should be UUID
+    durationWeek: course.durationweek,
+    description: course.description,
+    personalTrainerName: course.trainername || ''
+  };
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('Failed to create course');
+  return await res.json();
+}
+
+// Replace fetchTrainers to fetch from PT table
+export async function fetchTrainers() {
+  const res = await fetch('http://localhost:5231/api/customer');
+  if (!res.ok) throw new Error('Failed to fetch customers');
+  const customers = await res.json();
+  // type: 0 means PT (Personal Trainer)
+  return customers.filter((c: any) => c.type === 0);
+}
