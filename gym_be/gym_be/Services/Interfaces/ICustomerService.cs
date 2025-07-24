@@ -14,5 +14,6 @@ namespace gym_be.Services.Interfaces
         Task<(IEnumerable<Customer> data, int totalCount)> GetPagedAsync(string? keyword, int page, int pageSize);
 
         Task<IEnumerable<CustomerOptionDto>> GetOptionsAsync();
+        Task<Customer?> GetByEmailAsync(string email);
     }
 }

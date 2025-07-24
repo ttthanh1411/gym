@@ -3,6 +3,8 @@ using gym_be.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Enable dynamic JSON mapping for Npgsql

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, UserPlus } from 'lucide-react';
+import { register } from '@/service/authService';
 
 interface FormData {
   fullName: string;
@@ -35,6 +36,8 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiSuccess, setApiSuccess] = useState<string | null>(null);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,7 +55,8 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setApiError(null);
+    setApiSuccess(null);
     const newErrors: FormErrors = {};
     
     if (!formData.fullName.trim()) {
@@ -92,11 +96,31 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     
     setIsLoading(true);
     
-    // Simulate registration process
-    setTimeout(() => {
+    try {
+      // Ensure type and phoneNumber are included for the register API
+      await register({
+        ...formData,
+        type: 0, // or whatever default type is appropriate
+        phoneNumber: '',
+        address: 'No address',
+        status: 1 // or get from formData if you have a phone number field
+      });
+      setApiSuccess('Registration successful! You can now log in.');
+      setFormData({
+        fullName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        agreeToTerms: false
+      });
+      setTimeout(() => {
+        onSwitchToLogin();
+      }, 1200);
+    } catch (err: any) {
+      setApiError(err.message || 'Registration failed');
+    } finally {
       setIsLoading(false);
-      console.log('Registration successful:', formData);
-    }, 2000);
+    }
   };
 
   return (
@@ -110,6 +134,8 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {apiError && <div className="text-red-600 text-center font-medium">{apiError}</div>}
+        {apiSuccess && <div className="text-green-600 text-center font-medium">{apiSuccess}</div>}
         {/* Full Name Field */}
         <div className="space-y-1">
           <div className="relative">

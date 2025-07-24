@@ -8,6 +8,7 @@ export interface Customer {
   status: number; // 1: Active, 0: Inactive
   createdAt?: string;
   updatedAt?: string;
+  password?: string;
 }
 
 export interface CustomerFormData {
