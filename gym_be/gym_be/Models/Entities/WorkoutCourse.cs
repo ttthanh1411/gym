@@ -30,4 +30,6 @@ public class WorkoutCourse
 
     
     public Customer PersonalTrainer { get; set; } 
+    [Column("schedules", TypeName = "jsonb")]
+    public List<Guid> Schedules { get; set; } = new List<Guid>();
 }

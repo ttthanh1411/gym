@@ -8,7 +8,10 @@ import {
   X,
 } from 'lucide-react';
 
+import { Schedule } from '@/type/schedule';
 import { WorkoutCourse } from '@/type/workOutCourse';
+
+import { fetchAllSchedules } from '../../service/workOutCourse';
 
 interface CourseModalProps {
   course: WorkoutCourse | null;
@@ -17,14 +20,27 @@ interface CourseModalProps {
 }
 
 export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClose }) => {
+  const [allSchedules, setAllSchedules] = React.useState<Schedule[]>([]);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      fetchAllSchedules().then(setAllSchedules).catch(() => setAllSchedules([]));
+    }
+  }, [isOpen]);
+
   if (!isOpen || !course) return null;
+
+  // Get schedule details for this course
+  const courseSchedules = (course.schedules || [])
+    .map((sid: string) => allSchedules.find(s => s.scheduleID === sid || s.scheduleid === sid))
+    .filter(Boolean);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="relative">
           <img
-            src={course.imageUrl}
+            src={course.imageurl || course.imageUrl}
             alt={course.coursename}
             className="w-full h-64 object-cover rounded-t-2xl"
           />
@@ -38,7 +54,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
 
         <div className="p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            {course.personalTrainerName}
+            {course.personaltrainername}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -48,7 +64,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
               </div>
               <div>
                 <p className="text-sm text-gray-500">Trainer</p>
-                <p className="font-semibold text-gray-900">{course.personalTrainerName}</p>
+                <p className="font-semibold text-gray-900">{course.personaltrainername}</p>
               </div>
             </div>
 
@@ -82,6 +98,23 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
               {course.description}
             </p>
           </div>
+
+          {/* After description, show schedules if any */}
+          {courseSchedules.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="w-5 h-5 text-gray-600" />
+                <h3 className="text-xl font-semibold text-gray-900">Schedules</h3>
+              </div>
+              <ul className="list-disc pl-6 text-gray-700">
+                {courseSchedules.map((sch, idx) => (
+                  <li key={sch.scheduleID || sch.scheduleid}>
+                    {(sch.dayOfWeek || sch.dayofweek)} {sch.startTime ? new Date(sch.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} - {sch.endTime ? new Date(sch.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="flex gap-4">
             <button className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200">

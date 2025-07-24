@@ -26,6 +26,6 @@ namespace gym_be.Models
         [Range(0, double.MaxValue)]
         public decimal ServicePrice { get; set; }
 
-        public ICollection<Appointment> Appointments { get; set; }
+        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace gym_be.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/workout-course")]
     [ApiController]
     public class WorkoutCourseController : ControllerBase
     {
@@ -19,7 +19,21 @@ namespace gym_be.Controllers
         public async Task<IActionResult> GetAllWorkoutCourses()
         {
             var courses = await _workoutCourseService.GetAllWorkoutCoursesAsync();
-            return Ok(courses);
+            // For each course, include schedules if possible
+            // If schedules are not related, return empty array
+            var result = courses.Select(c => new {
+                // Copy all properties (use lowercase keys)
+                courseid = c.CourseId,
+                coursename = c.CourseName,
+                imageurl = c.ImageUrl,
+                personaltrainerid = c.PersonalTrainerId,
+                durationweek = c.DurationWeek,
+                description = c.Description,
+                personaltrainername = c.PersonalTrainerName,
+                // Add schedules: [] (empty array or real data if available)
+                schedules = c.Schedules
+            });
+            return Ok(result);
         }
 
         [HttpGet("{courseId}")]
