@@ -9,5 +9,6 @@
         public int DurationWeek { get; set; }
         public string Description { get; set; }
         public string PersonalTrainerName { get; set; } 
+        public List<Guid> Schedules { get; set; } = new List<Guid>();
     }
 }

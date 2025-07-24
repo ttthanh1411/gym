@@ -2,7 +2,7 @@ export interface WorkoutCourse {
   courseid: string;
   coursename: string;
   imageUrl: string;
-  personalTrainerName: string;
+  personaltrainername: string;
   durationWeek: number;
   description: string;
   trainername?: string;

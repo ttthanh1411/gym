@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import {
+  Calendar,
   Clock,
   FileText,
   Image,
@@ -9,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { fetchAllSchedules } from '../../service/workOutCourse';
 import { WorkoutCourse } from '../../type/workOutCourse';
 
 interface AddCourseModalProps {
@@ -29,21 +31,32 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     imageurl: '',
     personaltrainer: '',
     durationweek: 1,
-    description: ''
+    description: '',
+    schedules: [] as string[],
   });
+  const [allSchedules, setAllSchedules] = useState<any[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    if (isOpen) {
+      fetchAllSchedules().then(setAllSchedules).catch(() => setAllSchedules([]));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'durationweek' ? parseInt(value) || 1 : value
-    }));
-
-    // Clear error when user starts typing
+    if (e.target instanceof HTMLSelectElement && e.target.multiple) {
+      const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
+      setFormData(prev => ({ ...prev, [name]: selected }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'durationweek' ? parseInt(value) || 1 : value
+      }));
+    }
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -94,10 +107,10 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
 
     if (validateForm()) {
       const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
-      const newCourse: Omit<WorkoutCourse, 'courseid'> = {
+      const newCourse = {
         ...formData,
-        personaltrainer: formData.personaltrainer, // UUID string
-        trainername: selectedTrainer?.name || ''
+        trainername: selectedTrainer?.name || '',
+        schedules: formData.schedules,
       };
 
       onAddCourse(newCourse);
@@ -108,7 +121,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
         imageurl: '',
         personaltrainer: '',
         durationweek: 1,
-        description: ''
+        description: '',
+        schedules: [],
       });
       setErrors({});
       onClose();
@@ -121,7 +135,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
       imageurl: '',
       personaltrainer: '',
       durationweek: 1,
-      description: ''
+      description: '',
+      schedules: [],
     });
     setErrors({});
     onClose();
@@ -269,6 +284,51 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
                 {formData.description.length}/256 characters
               </p>
             </div>
+          </div>
+
+          {/* Schedules Multi-Select */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <Calendar className="w-4 h-4" />
+              Lịch trình (chọn nhiều)
+            </label>
+            <div className="border rounded-lg p-2 max-h-40 overflow-y-auto bg-white">
+              {allSchedules.map(sch => {
+                const id = sch.scheduleID || sch.scheduleid;
+                const label = `${sch.dayOfWeek || sch.dayofweek} ${sch.startTime ? new Date(sch.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} - ${sch.endTime ? new Date(sch.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}`;
+                return (
+                  <label key={id} className="flex items-center gap-2 py-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      value={id}
+                      checked={formData.schedules.includes(id)}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setFormData(prev => ({
+                          ...prev,
+                          schedules: checked
+                            ? [...prev.schedules, id]
+                            : prev.schedules.filter(sid => sid !== id)
+                        }));
+                      }}
+                      className="accent-purple-600"
+                    />
+                    <span>{label}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {formData.schedules.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formData.schedules.map(sid => {
+                  const sch = allSchedules.find(s => (s.scheduleID || s.scheduleid) === sid);
+                  const label = sch ? `${sch.dayOfWeek || sch.dayofweek} ${sch.startTime ? new Date(sch.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} - ${sch.endTime ? new Date(sch.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}` : sid;
+                  return (
+                    <span key={sid} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">{label}</span>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

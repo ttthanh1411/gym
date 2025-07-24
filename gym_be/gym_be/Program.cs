@@ -1,8 +1,13 @@
 ﻿using gym_be.Models;
 using gym_be.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Enable dynamic JSON mapping for Npgsql
+NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
+
 builder.Services.AddDbContext<GymContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.

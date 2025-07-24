@@ -24,7 +24,8 @@ namespace gym_be.Services
                 PersonalTrainerId = course.PersonalTrainerId,
                 DurationWeek = course.DurationWeek,
                 Description = course.Description,
-                PersonalTrainerName = course.PersonalTrainer?.Name 
+                PersonalTrainerName = course.PersonalTrainer?.Name,
+                Schedules = course.Schedules
             }).ToList();
         }
 
@@ -42,7 +43,8 @@ namespace gym_be.Services
                 PersonalTrainerId = course.PersonalTrainerId,
                 DurationWeek = course.DurationWeek,
                 Description = course.Description,
-                PersonalTrainerName = course.PersonalTrainer?.Name
+                PersonalTrainerName = course.PersonalTrainer?.Name,
+                Schedules = course.Schedules
             };
         }
 
@@ -55,7 +57,8 @@ namespace gym_be.Services
                 ImageUrl = workoutCourseDto.ImageUrl,
                 PersonalTrainerId = workoutCourseDto.PersonalTrainerId,
                 DurationWeek = workoutCourseDto.DurationWeek,
-                Description = workoutCourseDto.Description
+                Description = workoutCourseDto.Description,
+                Schedules = workoutCourseDto.Schedules ?? new List<Guid>()
             };
             await _workoutCourseRepository.CreateWorkoutCourseAsync(workoutCourse);
         }
@@ -69,7 +72,8 @@ namespace gym_be.Services
                 ImageUrl = workoutCourseDto.ImageUrl,
                 PersonalTrainerId = workoutCourseDto.PersonalTrainerId,
                 DurationWeek = workoutCourseDto.DurationWeek,
-                Description = workoutCourseDto.Description
+                Description = workoutCourseDto.Description,
+                Schedules = workoutCourseDto.Schedules ?? new List<Guid>()
             };
             await _workoutCourseRepository.UpdateWorkoutCourseAsync(workoutCourse);
         }
