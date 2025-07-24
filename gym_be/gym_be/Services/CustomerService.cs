@@ -99,5 +99,10 @@ namespace gym_be.Services
             await _repository.SaveChangesAsync();
             return existing;
         }
+
+        public async Task<Customer?> GetByEmailAsync(string email)
+        {
+            return await _repository.Query().FirstOrDefaultAsync(c => c.Email == email);
+        }
     }
 }

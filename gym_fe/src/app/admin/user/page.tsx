@@ -31,14 +31,15 @@ const UserManagement: React.FC = () => {
     email: string;
     password?: string;
     type: number;
+    status: number;
   }>({
     name: '',
     phoneNumber: '',
     address: '',
     email: '',
-    type: 0,
+    type: 1,
     password: '',
-    
+    status: 1,
   });
   const isReadonly = modalMode === 'view';
   const fetchUsers = async () => {
@@ -78,7 +79,7 @@ const UserManagement: React.FC = () => {
 
       fetchUsers();
       setShowAddModal(false);
-      setFormData({ name: '', phoneNumber: '', address: '', email: '', password: '', type: 0 });
+      setFormData({ name: '', phoneNumber: '', address: '', email: '', password: '', type: 1, status: 1 });
       setSelectedUser(null);
       setModalMode(null);
       setIsLoading(false);
@@ -123,7 +124,8 @@ const UserManagement: React.FC = () => {
       address: '',
       email: '',
       password: '',
-      type: 1,
+      type: 1,  
+      status: 1,
     });
   };
 
@@ -310,8 +312,9 @@ const UserManagement: React.FC = () => {
                               phoneNumber: user.phoneNumber,
                               address: user.address,
                               email: user.email,
-                              password: '',
+                              password: user.password,
                               type: user.type,
+                              status: 1
                             });
                             setModalMode('edit');
                             setShowAddModal(true);
