@@ -55,11 +55,11 @@ function Workout() {
       filtered = filtered.filter(course => {
         switch (filterByDuration) {
           case 'short':
-            return course.durationWeek <= 8;
+            return course.durationweek <= 8;
           case 'medium':
-            return course.durationWeek > 8 && course.durationWeek <= 12;
+            return course.durationweek > 8 && course.durationweek <= 12;
           case 'long':
-            return course.durationWeek > 12;
+            return course.durationweek > 12;
           default:
             return true;
         }
@@ -71,7 +71,7 @@ function Workout() {
         case 'name':
           return (a.coursename || '').localeCompare(b.coursename || '');
         case 'duration':
-          return a.durationWeek - b.durationWeek;
+          return a.durationweek - b.durationweek;
         case 'trainer':
           return (a.trainername || '').localeCompare(b.trainername || '');
         default:
@@ -100,9 +100,9 @@ function Workout() {
     }
   };
 
-  const totalDuration = courses.reduce((sum, course) => sum + course.durationWeek, 0);
-  const avgDuration = Math.round(totalDuration / courses.length);
-  const uniqueTrainers = new Set(courses.map(course => course.personalTrainerName)).size;
+  const totalDuration = courses.reduce((sum, course) => sum + (course.durationweek || 0), 0);
+  const avgDuration = courses.length > 0 && totalDuration > 0 ? Math.round(totalDuration / courses.length) : 0;
+  const uniqueTrainers = new Set(courses.map(course => course.personaltrainername)).size;
 
   if (loading) {
     return <div className="flex justify-center items-center h-96 text-xl">Loading...</div>;
