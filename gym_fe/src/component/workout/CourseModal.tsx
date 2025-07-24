@@ -32,7 +32,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
 
   // Get schedule details for this course
   const courseSchedules = (course.schedules || [])
-    .map((sid: string) => allSchedules.find(s => s.scheduleID === sid || s.scheduleid === sid))
+    .map((sid: string) => allSchedules.find(s => s.scheduleID === sid))
     .filter(Boolean);
 
   return (
@@ -40,7 +40,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="relative">
           <img
-            src={course.imageurl || course.imageUrl}
+            src={course.imageurl}
             alt={course.coursename}
             className="w-full h-64 object-cover rounded-t-2xl"
           />
@@ -74,7 +74,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
               </div>
               <div>
                 <p className="text-sm text-gray-500">Duration</p>
-                <p className="font-semibold text-gray-900">{course.durationWeek} weeks</p>
+                <p className="font-semibold text-gray-900">{course.durationweek} weeks</p>
               </div>
             </div>
 

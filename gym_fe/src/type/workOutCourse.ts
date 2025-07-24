@@ -1,10 +1,13 @@
+import { Schedule } from './schedule';
+
 export interface WorkoutCourse {
   courseid: string;
   coursename: string;
-  imageUrl: string;
+  imageurl: string;
   personaltrainername: string;
-  durationWeek: number;
+  durationweek: number;
   description: string;
+  schedules: Schedule[] | any;
   trainername?: string;
 }
 
