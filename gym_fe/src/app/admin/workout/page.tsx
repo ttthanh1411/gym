@@ -1,23 +1,35 @@
 'use client';
-import React, { useState, useMemo } from 'react';
-import  CourseCard  from '../../../component/workout/CourseCard';
-import { CourseModal } from '../../../component/workout/CourseModal';
-import { AddCourseModal } from '../../../component/workout/AddCourseModal';
-import { SearchFilter } from '../../../component/workout/SearchFilter';
-import { StatsCard } from '../../../component/workout/StatsCard';
-import { mockWorkoutCourses, mockTrainers } from '../../../service/workOutCourse';
-import { WorkoutCourse } from '../../../type/workOutCourse';
-import { 
-  BookOpen, 
-  Users, 
-  Clock, 
+import React, {
+  useMemo,
+  useState,
+} from 'react';
+
+import {
   Award,
+  BookOpen,
+  Clock,
+  Dumbbell,
   Plus,
-  Dumbbell
+  Users,
 } from 'lucide-react';
 
+import { AddCourseModal } from '../../../component/workout/AddCourseModal';
+import CourseCard from '../../../component/workout/CourseCard';
+import { CourseModal } from '../../../component/workout/CourseModal';
+import { SearchFilter } from '../../../component/workout/SearchFilter';
+import { StatsCard } from '../../../component/workout/StatsCard';
+import {
+  createWorkoutCourse,
+  fetchTrainers,
+  fetchWorkoutCourses,
+} from '../../../service/workOutCourse';
+import { Customer } from '../../../type/customer';
+import { WorkoutCourse } from '../../../type/workOutCourse';
+
 function Workout() {
-  const [courses, setCourses] = useState<WorkoutCourse[]>(mockWorkoutCourses);
+  const [courses, setCourses] = useState<WorkoutCourse[]>([]);
+  const [trainers, setTrainers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<WorkoutCourse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -25,22 +37,29 @@ function Workout() {
   const [sortBy, setSortBy] = useState('name');
   const [filterByDuration, setFilterByDuration] = useState('');
 
+  React.useEffect(() => {
+    Promise.all([
+      fetchWorkoutCourses().then(setCourses),
+      fetchTrainers().then(setTrainers)
+    ]).finally(() => setLoading(false));
+  }, []);
+
   const filteredAndSortedCourses = useMemo(() => {
-    let filtered = courses.filter(course => 
-      course.coursename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.trainername?.toLowerCase().includes(searchTerm.toLowerCase())
+    let filtered = courses.filter(course =>
+      (course.coursename || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (course.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (course.trainername || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (filterByDuration) {
       filtered = filtered.filter(course => {
         switch (filterByDuration) {
           case 'short':
-            return course.durationweek <= 8;
+            return course.durationWeek <= 8;
           case 'medium':
-            return course.durationweek > 8 && course.durationweek <= 12;
+            return course.durationWeek > 8 && course.durationWeek <= 12;
           case 'long':
-            return course.durationweek > 12;
+            return course.durationWeek > 12;
           default:
             return true;
         }
@@ -50,9 +69,9 @@ function Workout() {
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.coursename.localeCompare(b.coursename);
+          return (a.coursename || '').localeCompare(b.coursename || '');
         case 'duration':
-          return a.durationweek - b.durationweek;
+          return a.durationWeek - b.durationWeek;
         case 'trainer':
           return (a.trainername || '').localeCompare(b.trainername || '');
         default:
@@ -71,17 +90,23 @@ function Workout() {
     setSelectedCourse(null);
   };
 
-  const handleAddCourse = (newCourseData: Omit<WorkoutCourse, 'courseid'>) => {
-    const newCourse: WorkoutCourse = {
-      ...newCourseData,
-      courseid: (courses.length + 1).toString()
-    };
-    setCourses(prev => [...prev, newCourse]);
+  const handleAddCourse = async (newCourseData: Omit<WorkoutCourse, 'courseid'>) => {
+    try {
+      await createWorkoutCourse(newCourseData);
+      const updated = await fetchWorkoutCourses();
+      setCourses(updated);
+    } catch (e) {
+      alert('Failed to add course');
+    }
   };
 
-  const totalDuration = courses.reduce((sum, course) => sum + course.durationweek, 0);
+  const totalDuration = courses.reduce((sum, course) => sum + course.durationWeek, 0);
   const avgDuration = Math.round(totalDuration / courses.length);
-  const uniqueTrainers = new Set(courses.map(course => course.personaltrainer)).size;
+  const uniqueTrainers = new Set(courses.map(course => course.personalTrainerName)).size;
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-96 text-xl">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,7 +125,7 @@ function Workout() {
                 Khám phá các chương trình thể dục tuyệt vời được thiết kế bởi các huấn luyện viên chuyên nghiệp để giúp bạn đạt được mục tiêu của mình.
               </p>
             </div>
-            <button 
+            <button
               onClick={() => setIsAddModalOpen(true)}
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
             >
@@ -160,7 +185,7 @@ function Workout() {
 
         {/* Course Grid */}
         {filteredAndSortedCourses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {filteredAndSortedCourses.map((course) => (
               <CourseCard
                 key={course.courseid}
@@ -194,7 +219,7 @@ function Workout() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAddCourse={handleAddCourse}
-        trainers={mockTrainers}
+        trainers={trainers}
       />
     </div>
   );

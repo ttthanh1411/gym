@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
-import { X, Plus, User, Clock, FileText, Image } from 'lucide-react';
-import { WorkoutCourse } from '../../types/workOutCourse';
-import { Customer } from '../../types/customer'
+
+import {
+  Clock,
+  FileText,
+  Image,
+  Plus,
+  User,
+  X,
+} from 'lucide-react';
+
+import { WorkoutCourse } from '../../type/workOutCourse';
+
 interface AddCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddCourse: (course: Omit<WorkoutCourse, 'courseid'>) => void;
-  trainers: Customer[];
+  trainers: { customerID: string, name: string, email?: string }[];
 }
 
-export const AddCourseModal: React.FC<AddCourseModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onAddCourse, 
-  trainers 
+export const AddCourseModal: React.FC<AddCourseModalProps> = ({
+  isOpen,
+  onClose,
+  onAddCourse,
+  trainers
 }) => {
   const [formData, setFormData] = useState({
     coursename: '',
@@ -33,7 +42,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
       ...prev,
       [name]: name === 'durationweek' ? parseInt(value) || 1 : value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -42,31 +51,31 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.coursename.trim()) {
       newErrors.coursename = 'Course name is required';
     }
-    
+
     if (!formData.imageurl.trim()) {
       newErrors.imageurl = 'Image URL is required';
     } else if (!isValidUrl(formData.imageurl)) {
       newErrors.imageurl = 'Please enter a valid URL';
     }
-    
+
     if (!formData.personaltrainer) {
       newErrors.personaltrainer = 'Please select a trainer';
     }
-    
+
     if (formData.durationweek < 1 || formData.durationweek > 52) {
       newErrors.durationweek = 'Duration must be between 1 and 52 weeks';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     } else if (formData.description.length < 20) {
       newErrors.description = 'Description must be at least 20 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,16 +91,17 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
       const newCourse: Omit<WorkoutCourse, 'courseid'> = {
         ...formData,
+        personaltrainer: formData.personaltrainer, // UUID string
         trainername: selectedTrainer?.name || ''
       };
-      
+
       onAddCourse(newCourse);
-      
+
       // Reset form
       setFormData({
         coursename: '',
@@ -136,7 +146,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
             </button>
           </div>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Course Name */}
           <div>
@@ -150,9 +160,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               value={formData.coursename}
               onChange={handleInputChange}
               placeholder="Enter course name..."
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                errors.coursename ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${errors.coursename ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {errors.coursename && (
               <p className="text-red-500 text-sm mt-1">{errors.coursename}</p>
@@ -171,18 +180,17 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               value={formData.imageurl}
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                errors.imageurl ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${errors.imageurl ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {errors.imageurl && (
               <p className="text-red-500 text-sm mt-1">{errors.imageurl}</p>
             )}
             {formData.imageurl && isValidUrl(formData.imageurl) && (
               <div className="mt-3">
-                <img 
-                  src={formData.imageurl} 
-                  alt="Preview" 
+                <img
+                  src={formData.imageurl}
+                  alt="Preview"
                   className="w-full h-32 object-cover rounded-lg border"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
@@ -202,9 +210,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               name="personaltrainer"
               value={formData.personaltrainer}
               onChange={handleInputChange}
-              className={`text-black w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white ${
-                errors.personaltrainer ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`text-black w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white ${errors.personaltrainer ? 'border-red-500' : 'border-gray-300'
+                }`}
             >
               <option value="" className='text-black'>Select a trainer...</option>
               {trainers.map(trainer => (
@@ -231,9 +238,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               onChange={handleInputChange}
               min="1"
               max="52"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                errors.durationweek ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${errors.durationweek ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {errors.durationweek && (
               <p className="text-red-500 text-sm mt-1">{errors.durationweek}</p>
@@ -252,9 +258,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               onChange={handleInputChange}
               placeholder="Describe the course objectives, target audience, and what participants will learn..."
               rows={4}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none ${
-                errors.description ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none ${errors.description ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             <div className="flex justify-between items-center mt-1">
               {errors.description && (

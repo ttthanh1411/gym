@@ -1,6 +1,14 @@
 import React from 'react';
-import { WorkoutCourse } from '../../types/workOutCourse';
-import { X, Clock, User, Calendar, FileText } from 'lucide-react';
+
+import {
+  Calendar,
+  Clock,
+  FileText,
+  User,
+  X,
+} from 'lucide-react';
+
+import { WorkoutCourse } from '@/type/workOutCourse';
 
 interface CourseModalProps {
   course: WorkoutCourse | null;
@@ -15,8 +23,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="relative">
-          <img 
-            src={course.imageurl} 
+          <img
+            src={course.imageUrl}
             alt={course.coursename}
             className="w-full h-64 object-cover rounded-t-2xl"
           />
@@ -27,34 +35,34 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
             <X className="w-5 h-5 text-gray-700" />
           </button>
         </div>
-        
+
         <div className="p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            {course.coursename}
+            {course.personalTrainerName}
           </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <div className="bg-purple-100 p-2 rounded-lg">
                 <User className="w-5 h-5 text-purple-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Trainer</p>
-                <p className="font-semibold text-gray-900">{course.trainername}</p>
+                <p className="font-semibold text-gray-900">{course.personalTrainerName}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <div className="bg-blue-100 p-2 rounded-lg">
                 <Clock className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Duration</p>
-                <p className="font-semibold text-gray-900">{course.durationweek} weeks</p>
+                <p className="font-semibold text-gray-900">{course.durationWeek} weeks</p>
               </div>
             </div>
-            
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+
+            <div className="flex hidden items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <div className="bg-green-100 p-2 rounded-lg">
                 <Calendar className="w-5 h-5 text-green-600" />
               </div>
@@ -64,7 +72,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
               </div>
             </div>
           </div>
-          
+
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
               <FileText className="w-5 h-5 text-gray-600" />
@@ -74,12 +82,12 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
               {course.description}
             </p>
           </div>
-          
+
           <div className="flex gap-4">
             <button className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200">
               Enroll Now
             </button>
-            <button 
+            <button
               onClick={onClose}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
             >
