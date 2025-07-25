@@ -28,11 +28,12 @@ const userProfile = {
   address: AuthService.getCurrentUser()?.address || '',
   name: AuthService.getCurrentUser()?.name || 'Nguyễn Văn John',
   email: AuthService.getCurrentUser()?.email || 'john.doe@gmail.com',
-  birthDate: AuthService.getCurrentUser()?.birthDate || '1990-05-15',
   joinDate: AuthService.getCurrentUser()?.joinDate || '2023-08-10',
   membershipType: AuthService.getCurrentUser()?.membershipType || 'Premium',
   avatar: AuthService.getCurrentUser()?.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
   bio: AuthService.getCurrentUser()?.bio || 'Người đam mê fitness và yoga. Mục tiêu: sống khỏe mạnh và tích cực.',
+  height: AuthService.getCurrentUser()?.height || '',
+  weight: AuthService.getCurrentUser()?.weight || '',
 };
 
 const fitnessGoals = [
@@ -58,10 +59,12 @@ export default function ProfilePage() {
       if (!user) throw new Error('User not found');
       const updatePayload = {
         name: formData.name,
-        email: formData.email,
+        email: formData.email, // Always include current email
         phoneNumber: formData.phone,
         address: formData.address,
-        // Do not include password
+        height: formData.height === '' ? null : Number(formData.height),
+        weight: formData.weight === '' ? null : Number(formData.weight),
+        // Do not include password or bio
       };
       const updated = await customerService.update(user.userId || user.customerID, updatePayload);
       AuthService.setCurrentUser({ ...user, ...updated });
@@ -84,11 +87,9 @@ export default function ProfilePage() {
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-6">
             <div className="relative">
-              <img
-                src={formData.avatar}
-                alt="Avatar"
-                className="w-20 h-20 rounded-full object-cover border-4 border-white/20"
-              />
+              <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">{formData?.name?.[0] || 'U'}</span>
+              </div>
               <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-white text-indigo-600 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
                 <Camera className="w-4 h-4" />
               </button>
@@ -127,11 +128,10 @@ export default function ProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-4 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className={`flex items-center py-4 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 <tab.icon className="w-5 h-5 mr-2" />
                 {tab.name}
@@ -144,6 +144,7 @@ export default function ProfilePage() {
           {activeTab === 'profile' && (
             <div className="space-y-6 text-black">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Họ và tên */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Họ và tên
@@ -155,13 +156,13 @@ export default function ProfilePage() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       disabled={!isEditing}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                        isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
+                        }`}
                     />
                   </div>
                 </div>
 
+                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email
@@ -172,17 +173,17 @@ export default function ProfilePage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      disabled={!isEditing}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                        isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
-                      }`}
+                      disabled
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
+                        }`}
                     />
                   </div>
                 </div>
 
+                {/* Số điện thoại */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Số điện thoại {formData.phone}
+                    Số điện thoại
                   </label>
                   <div className="relative text-black">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black  w-5 h-5" />
@@ -191,65 +192,65 @@ export default function ProfilePage() {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       disabled={!isEditing}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                        isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
-                      }`}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
+                        }`}
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ngày sinh
+                    Địa chỉ
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                      type="date"
-                      value={formData.birthDate}
-                      onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                    <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                    <textarea
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       disabled={!isEditing}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                        isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
-                      }`}
+                      rows={1}
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
+                        }`}
                     />
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Địa chỉ
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                  <textarea
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    disabled={!isEditing}
-                    rows={3}
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                      isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
+                {/* Chiều cao */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chiều cao (cm)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.height}
+                      onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                      disabled={!isEditing}
+                      placeholder="Nhập chiều cao"
+                      className={`w-full pl-4 pr-4 py-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'}`}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giới thiệu bản thân
-                </label>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  disabled={!isEditing}
-                  rows={4}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'
-                  }`}
-                />
+                {/* Cân nặng */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cân nặng (kg)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.weight}
+                      onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                      disabled={!isEditing}
+                      placeholder="Nhập cân nặng"
+                      className={`w-full pl-4 pr-4 py-3 rounded-lg border ${isEditing ? 'border-gray-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50'}`}
+                    />
+                  </div>
+                </div>            
               </div>
-
               {isEditing && (
                 <div className="flex justify-end space-x-4">
                   <button
@@ -299,7 +300,7 @@ export default function ProfilePage() {
                           <span className="font-medium">{goal.progress}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
+                          <div
                             className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${goal.progress}%` }}
                           ></div>
@@ -334,7 +335,7 @@ export default function ProfilePage() {
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Cài đặt tài khoản</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center">
