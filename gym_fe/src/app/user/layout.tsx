@@ -30,10 +30,19 @@ import AuthService from '@/service/authService';
 const navigation = [
     { name: 'Trang chủ', href: '/user', icon: Home },
     { name: 'Mua khóa tập', href: '/user/buy', icon: ShoppingCart },
-    { name: 'Lịch tập', href: '/user/schedule', icon: Calendar },
+    { name: 'Khoá tập của tôi', href: '/user/schedule', icon: Calendar },
     { name: 'Thanh toán', href: '/user/payments', icon: CreditCard },
     { name: 'Hồ sơ', href: '/user/profile', icon: User },
 ];
+
+// Lấy số lượng mặt hàng trong giỏ hàng từ localStorage giống trang giỏ hàng
+const getCartCount = () => {
+    if (typeof window !== 'undefined') {
+        const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        return Array.isArray(items) ? items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0;
+    }
+    return 0;
+};
 
 export default function UserLayout({
     children,
@@ -45,11 +54,24 @@ export default function UserLayout({
     const user = AuthService.getCurrentUser();
     const router = useRouter();
 
+    // State cho số lượng mặt hàng trong giỏ
+    const [cartCount, setCartCount] = useState(0);
+
     useEffect(() => {
         if (!user) {
             router.push('/auth/login');
         }
     }, [user, router]);
+
+    useEffect(() => {
+        // Lấy số lượng mặt hàng trong giỏ khi mount
+        setCartCount(getCartCount());
+
+        // Nếu muốn realtime, có thể lắng nghe storage event hoặc context
+        const handleStorage = () => setCartCount(getCartCount());
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -152,6 +174,15 @@ export default function UserLayout({
                                 <Bell className="w-5 h-5" />
                                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                             </button>
+                            {/* Shopping cart icon with badge */}
+                            <Link href="/user/cart" className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100">
+                                <ShoppingCart className="w-5 h-5" />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 min-w-[1.2rem] h-4 px-1 bg-emerald-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </Link>
                             <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
                                 <span className="text-white font-semibold text-sm">JD</span>
                             </div>

@@ -7,6 +7,7 @@ import {
   Clock,
   Filter,
   Heart,
+  Plus,
   Search,
   ShoppingCart,
   Star,
@@ -17,6 +18,35 @@ import {
 import { fetchAllServices } from '../../../service/serviceService';
 import { fetchWorkoutCourses } from '../../../service/workOutCourse';
 import { Service } from '../../../type/service';
+
+// Toast helper
+function showToast(message: string) {
+  // Simple toast implementation, can be replaced with a library like react-hot-toast
+  const toast = document.createElement('div');
+  toast.innerText = message;
+  toast.className =
+    'fixed top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] text-base font-semibold animate-fade-in';
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('animate-fade-out');
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 400);
+  }, 1800);
+}
+
+// Add fade-in/out animation via style tag (only once)
+if (typeof window !== 'undefined' && !document.getElementById('custom-toast-style')) {
+  const style = document.createElement('style');
+  style.id = 'custom-toast-style';
+  style.innerHTML = `
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: translateY(0);} }
+    @keyframes fadeOut { from { opacity: 1;} to { opacity: 0; } }
+    .animate-fade-in { animation: fadeIn 0.3s ease; }
+    .animate-fade-out { animation: fadeOut 0.4s ease; }
+  `;
+  document.head.appendChild(style);
+}
 
 export default function BuyCoursePage() {
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
@@ -31,13 +61,13 @@ export default function BuyCoursePage() {
     fetchWorkoutCourses().then(setCourses).finally(() => setLoading(false));
     fetchAllServices().then((services: Service[]) => {
       setServices(services);
-      const names = services.map((s) => s.serviceName || s.servicename).filter(Boolean);
+      const names = services.map((s) => s.serviceName).filter(Boolean);
       setCategories(['Tất cả', ...Array.from(new Set(names))]);
     });
   }, []);
 
   // Find the selected serviceID based on selectedCategory
-  const selectedService = services.find(s => (s.serviceName || s.servicename) === selectedCategory);
+  const selectedService = services.find(s => s.serviceName === selectedCategory);
   const selectedServiceID = selectedService?.serviceID;
 
   const filteredCourses = courses.filter(course => {
@@ -52,6 +82,21 @@ export default function BuyCoursePage() {
       style: 'currency',
       currency: 'VND'
     }).format(price);
+  };
+
+  // Hàm xử lý thêm vào giỏ hàng và toast
+  const handleAddToCart = (course: any) => {
+    const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const idx = cartItems.findIndex((item: any) => item.id === (course.courseid || course.id));
+    if (idx !== -1) {
+      showToast("Khoá học này đã có trong giỏ hàng");
+      return;
+    } else {
+      cartItems.push({ ...course, id: course.courseid || course.id, quantity: 1 });
+    }
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
+    showToast("Thêm khoá tập vào giỏ thành công");
   };
 
   return (
@@ -184,10 +229,19 @@ export default function BuyCoursePage() {
                     <p className="text-sm text-gray-500">{course.personaltrainername || course.instructor}</p>
                   </div>
                 </div>
-                <button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center group">
-                  <ShoppingCart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Mua ngay
-                </button>
+                <div className="flex space-x-2">
+                  <button className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center group">
+                    <ShoppingCart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                    Mua ngay
+                  </button>
+                  <button
+                    className="flex-1 bg-white border border-emerald-500 text-emerald-600 py-3 rounded-lg font-medium hover:bg-emerald-50 transition-all duration-200 flex items-center justify-center group"
+                    onClick={() => handleAddToCart(course)}
+                  >
+                    <Plus className="w-5 h-5 mr-2 text-emerald-600 group-hover:scale-110 transition-transform" />
+                    Thêm vào giỏ
+                  </button>
+                </div>
               </div>
             </div>
           ))}
