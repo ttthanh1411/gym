@@ -105,7 +105,8 @@ export async function createWorkoutCourse(course: any) {
     description: course.description,
     personalTrainerName: course.trainername || '',
     schedules: course.schedules, // add schedules field
-    price: course.price // add price field
+    price: course.price, // add price field
+    serviceId: course.serviceid // add serviceid field
   };
   const res = await fetch(API_URL, {
     method: 'POST',
