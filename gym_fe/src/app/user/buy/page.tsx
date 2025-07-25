@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import {
   Check,
@@ -56,6 +57,7 @@ export default function BuyCoursePage() {
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<string[]>(['Tất cả']);
+  const router = useRouter();
 
   React.useEffect(() => {
     fetchWorkoutCourses().then(setCourses).finally(() => setLoading(false));
@@ -90,13 +92,25 @@ export default function BuyCoursePage() {
     const idx = cartItems.findIndex((item: any) => item.id === (course.courseid || course.id));
     if (idx !== -1) {
       showToast("Khoá học này đã có trong giỏ hàng");
-      return;
+      return false;
     } else {
       cartItems.push({ ...course, id: course.courseid || course.id, quantity: 1 });
     }
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
     showToast("Thêm khoá tập vào giỏ thành công");
+    return true;
+  };
+
+  // Hàm xử lý khi nhấn "Mua ngay"
+  const handleBuyNow = (course: any) => {
+    const added = handleAddToCart(course);
+    if (added !== false) {
+      // Đợi toast hiển thị một chút rồi chuyển trang (nếu muốn mượt mà)
+      setTimeout(() => {
+        router.push('/user/cart');
+      }, 500);
+    }
   };
 
   return (
@@ -224,13 +238,15 @@ export default function BuyCoursePage() {
                       <span className="text-2xl font-bold text-gray-900">
                         {formatPrice(course.price || course.price)}
                       </span>
-
                     </div>
                     <p className="text-sm text-gray-500">{course.personaltrainername || course.instructor}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center group">
+                  <button
+                    className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center group"
+                    onClick={() => handleBuyNow(course)}
+                  >
                     <ShoppingCart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                     Mua ngay
                   </button>
