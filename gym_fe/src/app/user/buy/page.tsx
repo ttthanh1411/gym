@@ -14,9 +14,20 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { useUser } from '../../../context/UserContext';
 import { fetchAllServices } from '../../../service/serviceService';
 import { fetchWorkoutCourses } from '../../../service/workOutCourse';
 import { Service } from '../../../type/service';
+
+async function fetchRecommendations(height: number, weight: number) {
+  const res = await fetch('http://localhost:5231/api/recommendation', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ height, weight })
+  });
+  if (!res.ok) return [];
+  return await res.json(); // array of courseid
+}
 
 export default function BuyCoursePage() {
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
@@ -26,18 +37,27 @@ export default function BuyCoursePage() {
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<string[]>(['Tất cả']);
+  // Thêm state cho user
+  const { user } = useUser();
+  const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
 
   React.useEffect(() => {
     fetchWorkoutCourses().then(setCourses).finally(() => setLoading(false));
     fetchAllServices().then((services: Service[]) => {
       setServices(services);
-      const names = services.map((s) => s.serviceName || s.servicename).filter(Boolean);
+      const names = services.map((s) => s.serviceName || s.serviceName).filter(Boolean);
       setCategories(['Tất cả', ...Array.from(new Set(names))]);
     });
   }, []);
 
+  React.useEffect(() => {
+    if (user && user.height && user.weight) {
+      fetchRecommendations(user.height, user.weight).then(setRecommendedIds);
+    }
+  }, [user]);
+
   // Find the selected serviceID based on selectedCategory
-  const selectedService = services.find(s => (s.serviceName || s.servicename) === selectedCategory);
+  const selectedService = services.find(s => (s.serviceName || s.serviceName) === selectedCategory);
   const selectedServiceID = selectedService?.serviceID;
 
   const filteredCourses = courses.filter(course => {
@@ -45,6 +65,18 @@ export default function BuyCoursePage() {
     const matchesSearch = (course.coursename || course.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (course.personaltrainername || course.instructor || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
+  });
+
+  // Gợi ý khoá học dựa vào BMI
+  // let recommendedIds: string[] = []; // This line is removed as recommendedIds is now fetched from backend
+
+  // Sort: khoá gợi ý lên đầu
+  const sortedCourses = [...filteredCourses].sort((a, b) => {
+    const aRec = recommendedIds.includes(a.courseid || a.id);
+    const bRec = recommendedIds.includes(b.courseid || b.id);
+    if (aRec && !bRec) return -1;
+    if (!aRec && bRec) return 1;
+    return 0;
   });
 
   const formatPrice = (price: number) => {
@@ -117,80 +149,88 @@ export default function BuyCoursePage() {
         <div className="flex justify-center items-center h-96 text-xl">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <div key={course.courseid || course.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow group">
-              <div className="relative">
-                <img
-                  src={course.imageurl || course.imageUrl || course.image}
-                  alt={course.coursename || course.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                {course.popular && (
-                  <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-400 to-pink-400 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Phổ biến
-                  </div>
-                )}
-                <button className="absolute top-4 right-4 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
-                  <Heart className="w-4 h-4 text-gray-600 hover:text-red-500" />
-                </button>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 py-1 rounded">
-                    {course.level || 'Cơ bản'}
-                  </span>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm font-medium text-gray-700 ml-1">{course.rating || ''}</span>
-                    <span className="text-sm text-gray-500 ml-1">{course.reviews ? `(${course.reviews})` : ''}</span>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
-                  {course.coursename || course.name}
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {course.description}
-                </p>
-                <div className="flex items-center text-sm text-gray-500 mb-4 space-x-4">
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {course.durationweek || course.durationWeek || course.duration || ''} tuần
-                  </div>
-                  <div className="flex items-center">
-                    <Zap className="w-4 h-4 mr-1" />
-                    {course.sessions || ''} buổi
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    {course.students || ''}
-                  </div>
-                </div>
-                <div className="space-y-2 mb-4">
-                  {(course.highlights || []).slice(0, 2).map((highlight: string, index: number) => (
-                    <div key={index} className="flex items-center text-sm text-gray-600">
-                      <Check className="w-4 h-4 text-emerald-500 mr-2 flex-shrink-0" />
-                      {highlight}
+          {sortedCourses.map((course) => {
+            const isRecommended = recommendedIds.includes(course.courseid || course.id);
+            return (
+              <div key={course.courseid || course.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow group">
+                <div className="relative">
+                  <img
+                    src={course.imageurl || course.imageUrl || course.image}
+                    alt={course.coursename || course.name}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {isRecommended && (
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-emerald-500 to-green-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-white">
+                      Gợi ý
                     </div>
-                  ))}
+                  )}
+                  {course.popular && (
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-400 to-pink-400 text-white px-3 py-1 rounded-full text-xs font-medium" style={{ top: isRecommended ? '2.5rem' : '1rem' }}>
+                      Phổ biến
+                    </div>
+                  )}
+                  <button className="absolute top-4 right-4 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+                    <Heart className="w-4 h-4 text-gray-600 hover:text-red-500" />
+                  </button>
                 </div>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-bold text-gray-900">
-                        {formatPrice(course.price || course.price)}
-                      </span>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 py-1 rounded">
+                      {course.level || 'Cơ bản'}
+                    </span>
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-sm font-medium text-gray-700 ml-1">{course.rating || ''}</span>
+                      <span className="text-sm text-gray-500 ml-1">{course.reviews ? `(${course.reviews})` : ''}</span>
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                    {course.coursename || course.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {course.description}
+                  </p>
+                  <div className="flex items-center text-sm text-gray-500 mb-4 space-x-4">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {course.durationweek || course.durationWeek || course.duration || ''} tuần
+                    </div>
+                    <div className="flex items-center">
+                      <Zap className="w-4 h-4 mr-1" />
+                      {course.sessions || ''} buổi
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-1" />
+                      {course.students || ''}
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    {(course.highlights || []).slice(0, 2).map((highlight: string, index: number) => (
+                      <div key={index} className="flex items-center text-sm text-gray-600">
+                        <Check className="w-4 h-4 text-emerald-500 mr-2 flex-shrink-0" />
+                        {highlight}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-2xl font-bold text-gray-900">
+                          {formatPrice(course.price || course.price)}
+                        </span>
 
+                      </div>
+                      <p className="text-sm text-gray-500">{course.personaltrainername || course.instructor}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{course.personaltrainername || course.instructor}</p>
                   </div>
+                  <button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center group">
+                    <ShoppingCart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                    Mua ngay
+                  </button>
                 </div>
-                <button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center group">
-                  <ShoppingCart className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Mua ngay
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
