@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ShoppingCart, Trash2, User, Clock, Zap } from "lucide-react";
 import { loadStripe } from '@stripe/stripe-js';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const stripePromise = loadStripe('pk_test_51Rom2g3PJbTWL2KKVaARgjfr0SVwgKIr1BGD8bVRqQQsWMXCjWd6uXI6BKtnZU2voUD1IHr8vW8zEukDNikMSPrv00bSTzj2Fh');
 
@@ -31,11 +32,19 @@ function formatPrice(price: number) {
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const searchParams = useSearchParams();
+  const success = searchParams.get('success');
 
   useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    setCartItems(items);
-  }, []);
+    if (success === 'true') {
+      localStorage.removeItem('cartItems');
+      setCartItems([]);
+      window.dispatchEvent(new StorageEvent('storage', { key: 'cartItems' }));
+    } else {
+      const items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      setCartItems(items);
+    }
+  }, [success]);
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -80,6 +89,11 @@ export default function CartPage() {
         <ShoppingCart className="w-8 h-8 text-emerald-600" />
         <h1 className="text-3xl font-extrabold text-gray-900">Giỏ hàng của bạn</h1>
       </div>
+      {success === 'true' && (
+        <div className="mb-6 p-4 rounded-lg bg-emerald-100 text-emerald-800 text-center font-semibold text-lg shadow">
+          Thanh toán thành công! Cảm ơn bạn đã mua khoá tập tại GymHub.
+        </div>
+      )}
       {cartItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow">
           <ShoppingCart className="w-16 h-16 text-gray-200 mb-4" />
