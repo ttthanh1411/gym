@@ -89,33 +89,35 @@ export default function UserLayout({
                         </div>
                     </div>
 
-                    {/* Navigation */}
-                    <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                        {navigation.map((item) => {
-                            const isActive = pathname === item.href;
-                            return (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={cn(
-                                        "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group",
-                                        isActive
-                                            ? "bg-emerald-50 text-emerald-700 border-r-4 border-emerald-600"
-                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                    )}
-                                    onClick={() => setSidebarOpen(false)}
-                                >
-                                    <item.icon className={cn(
-                                        "mr-3 h-5 w-5 transition-colors",
-                                        isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-600"
-                                    )} />
-                                    <span className="truncate">{item.name}</span>
-                                </Link>
-                            );
-                        })}
-                    </nav>
+                    {/* Navigation (scrollable) */}
+                    <div className="flex-1 overflow-y-auto">
+                        <nav className="px-4 py-6 space-y-1">
+                            {navigation.map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        className={cn(
+                                            "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group",
+                                            isActive
+                                                ? "bg-emerald-50 text-emerald-700 border-r-4 border-emerald-600"
+                                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                        )}
+                                        onClick={() => setSidebarOpen(false)}
+                                    >
+                                        <item.icon className={cn(
+                                            "mr-3 h-5 w-5 transition-colors",
+                                            isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-600"
+                                        )} />
+                                        <span className="truncate">{item.name}</span>
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+                    </div>
 
-                    {/* Footer */}
+                    {/* Footer (always at bottom) */}
                     <div className="p-4 border-t border-gray-200 space-y-1">
                         <button className="flex items-center w-full px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors">
                             <Settings className="mr-3 h-4 w-4" />

@@ -43,7 +43,7 @@ namespace gym_be.Controllers
                 Type = 1, // 1 = user, 0 = admin
                 Status = 1,
                 PhoneNumber = $"09{new Random().Next(10000000, 99999999)}",
-                Address = "No address"
+                Address = ""
             };
 
             await _customerService.CreateAsync(customer);

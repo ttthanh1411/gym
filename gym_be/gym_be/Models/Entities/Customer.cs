@@ -23,6 +23,12 @@ namespace gym_be.Models.Entities
         [MaxLength(200)]
         public string Address { get; set; }
 
+        [Column("height")]
+        public float? Height { get; set; }
+
+        [Column("weight")]
+        public float? Weight { get; set; }
+
         [Column("email")]
         [MaxLength(50)]
         public string Email { get; set; }
