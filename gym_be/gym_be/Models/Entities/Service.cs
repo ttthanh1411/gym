@@ -20,7 +20,7 @@ namespace gym_be.Models
 
         [MaxLength(256)]
         [Column("coursedescription")]
-        public string CourseDescription { get; set; }
+        public string? CourseDescription { get; set; }
 
         [Column("serviceprice")]
         [Range(0, double.MaxValue)]
