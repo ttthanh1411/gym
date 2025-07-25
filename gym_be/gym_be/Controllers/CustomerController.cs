@@ -3,6 +3,7 @@ using gym_be.Models;
 using gym_be.Services;
 using gym_be.Models.Entities;
 using gym_be.Services.Interfaces;
+using gym_be.Models.DTOs;
 
 namespace gym_be.Controllers
 {
@@ -74,11 +75,18 @@ namespace gym_be.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCustomer(Guid id, [FromBody] Customer customer)
+        public async Task<IActionResult> UpdateCustomer(Guid id, [FromBody] CustomerUpdateDto dto)
         {
-            var updated = await _service.UpdateAsync(id, customer);
-            if (updated == null) return NotFound();
-            return Ok(updated);
+            var existing = await _service.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+            existing.Name = dto.Name;
+            existing.Email = dto.Email;
+            existing.PhoneNumber = dto.PhoneNumber;
+            existing.Address = dto.Address;
+            if (dto.Type.HasValue) existing.Type = dto.Type.Value;
+            if (dto.Status.HasValue) existing.Status = dto.Status.Value;
+            await _service.UpdateAsync(id, existing);
+            return Ok(existing);
         }
 
     }

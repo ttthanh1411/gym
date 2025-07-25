@@ -43,6 +43,10 @@ class AuthService {
     return user ? JSON.parse(user) : null;
   }
 
+  setCurrentUser(user: any) {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
   logout() {
     localStorage.removeItem('user');
   }

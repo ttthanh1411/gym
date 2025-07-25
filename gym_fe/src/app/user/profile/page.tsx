@@ -19,6 +19,8 @@ import {
   Activity
 } from 'lucide-react';
 import AuthService from '@/service/authService';
+import customerService from '@/service/customerService';
+import { toast } from '@/hooks/use-toast';
 
 const userProfile = {
   ...AuthService.getCurrentUser(),
@@ -50,9 +52,24 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState(userProfile);
 
-  const handleSave = () => {
-    // Save logic here
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (!user) throw new Error('User not found');
+      const updatePayload = {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phone,
+        address: formData.address,
+        // Do not include password
+      };
+      const updated = await customerService.update(user.userId || user.customerID, updatePayload);
+      AuthService.setCurrentUser({ ...user, ...updated });
+      toast({ title: 'Cập nhật thành công', description: 'Thông tin cá nhân đã được cập nhật.' });
+      setIsEditing(false);
+    } catch (err: any) {
+      toast({ title: 'Cập nhật thất bại', description: err.message });
+    }
   };
 
   const handleCancel = () => {
