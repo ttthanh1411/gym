@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ShoppingCart, Trash2, User, Clock, Zap } from "lucide-react";
 import { loadStripe } from '@stripe/stripe-js';
 import { useRouter, useSearchParams } from 'next/navigation';
+import AuthService from '@/service/authService';
 
 const stripePromise = loadStripe('pk_test_51Rom2g3PJbTWL2KKVaARgjfr0SVwgKIr1BGD8bVRqQQsWMXCjWd6uXI6BKtnZU2voUD1IHr8vW8zEukDNikMSPrv00bSTzj2Fh');
 
@@ -37,6 +38,20 @@ export default function CartPage() {
 
   useEffect(() => {
     if (success === 'true') {
+      // Gọi API lưu payment và payment_detail
+      const user = AuthService.getCurrentUser();
+      const customerId = user?.userId || user?.customerID;
+      const items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      if (items.length > 0 && customerId) {
+        fetch('http://localhost:5231/api/payment/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Items: items,
+            CustomerId: customerId
+          })
+        });
+      }
       localStorage.removeItem('cartItems');
       setCartItems([]);
       window.dispatchEvent(new StorageEvent('storage', { key: 'cartItems' }));
@@ -68,12 +83,15 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
+    const user = AuthService.getCurrentUser();
+    const customerId = user?.userId || user?.customerID;
     const response = await fetch('http://localhost:5231/api/payment/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         Items: cartItems.map(item => ({ Name: item.coursename || item.name, Price: item.price })),
-        Origin: window.location.origin
+        Origin: window.location.origin,
+        CustomerId: customerId
       })
     });
     const data = await response.json();
