@@ -133,7 +133,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         <p className="text-gray-600">Join us and start your journey</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5 text-black">
         {apiError && <div className="text-red-600 text-center font-medium">{apiError}</div>}
         {apiSuccess && <div className="text-green-600 text-center font-medium">{apiSuccess}</div>}
         {/* Full Name Field */}

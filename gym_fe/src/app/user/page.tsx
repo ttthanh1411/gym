@@ -10,6 +10,7 @@ import {
   Users,
   Award
 } from 'lucide-react';
+import AuthService from '@/service/authService';
 
 const stats = [
   {
@@ -90,12 +91,13 @@ const recentAchievements = [
 ];
 
 export default function UserDashboard() {
+  const user = AuthService.getCurrentUser();
   return (
     <div className="space-y-8 container">
       {/* Welcome section */}
       <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-blue-500 rounded-2xl p-8 text-white">
         <div className="max-w-3xl">
-          <h1 className="text-3xl font-bold mb-2">Chào mừng trở lại, John! 👋</h1>
+          <h1 className="text-3xl font-bold mb-2">Chào mừng trở lại, {user?.name || 'User'}! 👋</h1>
           <p className="text-emerald-100 text-lg">
             Hôm nay bạn có 2 buổi tập. Hãy cùng chinh phục mục tiêu fitness của mình!
           </p>

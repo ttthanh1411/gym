@@ -18,17 +18,21 @@ import {
   Target,
   Activity
 } from 'lucide-react';
+import AuthService from '@/service/authService';
+import customerService from '@/service/customerService';
+import { toast } from '@/hooks/use-toast';
 
 const userProfile = {
-  name: 'Nguyễn Văn John',
-  email: 'john.doe@gmail.com',
-  phone: '+84 912 345 678',
-  address: '123 Đường ABC, Quận 1, TP.HCM',
-  birthDate: '1990-05-15',
-  joinDate: '2023-08-10',
-  membershipType: 'Premium',
-  avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-  bio: 'Người đam mê fitness và yoga. Mục tiêu: sống khỏe mạnh và tích cực.',
+  ...AuthService.getCurrentUser(),
+  phone: AuthService.getCurrentUser()?.phone || '',
+  address: AuthService.getCurrentUser()?.address || '',
+  name: AuthService.getCurrentUser()?.name || 'Nguyễn Văn John',
+  email: AuthService.getCurrentUser()?.email || 'john.doe@gmail.com',
+  birthDate: AuthService.getCurrentUser()?.birthDate || '1990-05-15',
+  joinDate: AuthService.getCurrentUser()?.joinDate || '2023-08-10',
+  membershipType: AuthService.getCurrentUser()?.membershipType || 'Premium',
+  avatar: AuthService.getCurrentUser()?.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+  bio: AuthService.getCurrentUser()?.bio || 'Người đam mê fitness và yoga. Mục tiêu: sống khỏe mạnh và tích cực.',
 };
 
 const fitnessGoals = [
@@ -48,9 +52,24 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState(userProfile);
 
-  const handleSave = () => {
-    // Save logic here
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (!user) throw new Error('User not found');
+      const updatePayload = {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phone,
+        address: formData.address,
+        // Do not include password
+      };
+      const updated = await customerService.update(user.userId || user.customerID, updatePayload);
+      AuthService.setCurrentUser({ ...user, ...updated });
+      toast({ title: 'Cập nhật thành công', description: 'Thông tin cá nhân đã được cập nhật.' });
+      setIsEditing(false);
+    } catch (err: any) {
+      toast({ title: 'Cập nhật thất bại', description: err.message });
+    }
   };
 
   const handleCancel = () => {
@@ -123,7 +142,7 @@ export default function ProfilePage() {
 
         <div className="p-6">
           {activeTab === 'profile' && (
-            <div className="space-y-6">
+            <div className="space-y-6 text-black">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,10 +182,10 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Số điện thoại
+                    Số điện thoại {formData.phone}
                   </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <div className="relative text-black">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black  w-5 h-5" />
                     <input
                       type="tel"
                       value={formData.phone}
@@ -265,7 +284,7 @@ export default function ProfilePage() {
                 {fitnessGoals.map((goal) => (
                   <div key={goal.id} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
                     <h4 className="font-semibold text-gray-900 mb-3">{goal.name}</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 text-black">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Hiện tại:</span>
                         <span className="font-medium">{goal.current}</span>
