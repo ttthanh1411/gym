@@ -1,24 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import {
-    Home,
-    ShoppingCart,
-    Calendar,
-    CreditCard,
-    User,
-    Menu,
-    X,
-    Dumbbell,
-    Bell,
-    LogOut,
-    Settings
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  Bell,
+  Calendar,
+  CreditCard,
+  Dumbbell,
+  Home,
+  LogOut,
+  Menu,
+  Settings,
+  ShoppingCart,
+  User,
+  X,
 } from 'lucide-react';
+import Link from 'next/link';
+import {
+  usePathname,
+  useRouter,
+} from 'next/navigation';
+
+import { cn } from '@/lib/utils';
 import AuthService from '@/service/authService';
-import { useRouter } from 'next/navigation';
 
 const navigation = [
     { name: 'Trang chủ', href: '/user', icon: Home },
@@ -53,7 +60,6 @@ export default function UserLayout({
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
-
             {/* Sidebar */}
             <div className={cn(
                 "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
