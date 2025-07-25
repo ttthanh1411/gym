@@ -119,6 +119,69 @@ namespace gym_be.Controllers
 
             return Ok(courseList);
         }
+
+        [HttpGet("my-schedules/{customerId}")]
+        public IActionResult GetMySchedules(Guid customerId)
+        {
+            // Lấy các paymentId đã thanh toán thành công của customer
+            var paidPaymentIds = _context.Payments
+                .Where(p => p.CustomerId == customerId && p.Status == true)
+                .Select(p => p.PaymentId)
+                .ToList();
+
+            // Lấy các khoá học đã mua
+            var courseIds = _context.PaymentDetails
+                .Where(pd => pd.CustomerId == customerId && paidPaymentIds.Contains(pd.PaymentId))
+                .Select(pd => pd.CourseId)
+                .Distinct()
+                .ToList();
+
+            // Lấy tất cả WorkoutCourse liên quan
+            var courses = _context.WorkoutCourses
+                .Where(c => courseIds.Contains(c.CourseId))
+                .AsEnumerable()
+                .ToList();
+
+            // Tạo ánh xạ scheduleId -> (PersonalTrainerId, CourseId)
+            var scheduleCourseMap = new Dictionary<Guid, (Guid PersonalTrainerId, Guid CourseId)>();
+            foreach (var course in courses)
+            {
+                foreach (var scheduleId in course.Schedules)
+                {
+                    scheduleCourseMap[scheduleId] = (course.PersonalTrainerId, course.CourseId);
+                }
+            }
+
+            // Lấy tất cả scheduleId
+            var scheduleIds = scheduleCourseMap.Keys.ToList();
+
+            // Lấy thông tin chi tiết các schedule
+            var schedules = _context.Schedules
+                .Where(s => scheduleIds.Contains(s.ScheduleID))
+                .ToList();
+
+            // Lấy danh sách giáo viên
+            var trainerIds = scheduleCourseMap.Values.Select(x => x.PersonalTrainerId).Distinct().ToList();
+            var trainers = _context.Customers
+                .Where(c => trainerIds.Contains(c.CustomerID))
+                .ToDictionary(c => c.CustomerID, c => c.Name);
+
+            // Trả về schedule kèm tên giáo viên và tên khoá học
+            var result = schedules.Select(s => new {
+                scheduleid = s.ScheduleID,
+                dayofWeek = s.DayOfWeek,
+                maxparticipants = s.MaxParticipants,
+                starttime = s.StartTime,
+                endtime = s.EndTime,
+                courseid = scheduleCourseMap[s.ScheduleID].CourseId,
+                coursename = courses.FirstOrDefault(c => c.CourseId == scheduleCourseMap[s.ScheduleID].CourseId)?.CourseName ?? "Không rõ",
+                teachername = trainers.ContainsKey(scheduleCourseMap[s.ScheduleID].PersonalTrainerId)
+                    ? trainers[scheduleCourseMap[s.ScheduleID].PersonalTrainerId]
+                    : "Không rõ"
+            }).ToList();
+
+            return Ok(result);
+        }
     }
 
     public class CheckoutItem
