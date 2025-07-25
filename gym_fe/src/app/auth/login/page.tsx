@@ -1,6 +1,9 @@
 'use client';
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield } from 'lucide-react';
+import AuthService from '@/service/authService';
+import { useRouter } from 'next/navigation';
+import { toast } from '@/hooks/use-toast';
 
 interface FormData {
   email: string;
@@ -27,6 +30,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,11 +70,19 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     
     setIsLoading(true);
     
-    // Simulate login process
-    setTimeout(() => {
+    try {
+      const res = await AuthService.login(formData);
+      toast({ title: 'Login successful', description: `Welcome, ${res.name}` });
+      if (res.type === 0) {
+        router.push('/admin');
+      } else if (res.type === 1) {
+        router.push('/user');
+      }
+    } catch (err: any) {
+      toast({ title: 'Login failed', description: err.message, });
+    } finally {
       setIsLoading(false);
-      console.log('Login successful:', formData);
-    }, 1500);
+    }
   };
 
   return (
@@ -83,7 +95,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         <p className="text-gray-600">Please sign in to your account</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 text-black">
         {/* Email Field */}
         <div className="space-y-1">
           <div className="relative">

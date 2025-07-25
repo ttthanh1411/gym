@@ -22,42 +22,17 @@ type AuthResponse = {
 class AuthService {
   private baseUrl = '/api/auth';
 
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Mock authentication - replace with real API call
-    const mockUsers = [
-      {
-        id: '1',
-        email: 'admin@example.com',
-        name: 'Admin User',
-        role: 'admin' as const,
-        password: 'admin123'
-      },
-      {
-        id: '2',
-        email: 'user@example.com',
-        name: 'Regular User',
-        role: 'user' as const,
-        password: 'user123'
-      }
-    ];
-
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const user = mockUsers.find(
-          u => u.email === credentials.email && u.password === credentials.password
-        );
-
-        if (user) {
-          const { ...userWithoutPassword } = user;
-          resolve({
-            user: userWithoutPassword,
-            token: `mock-token-${user.id}`
-          });
-        } else {
-          reject(new Error('Email hoặc mật khẩu không đúng'));
-        }
-      }, 1000);
+  async login(credentials: LoginCredentials & { rememberMe: boolean }): Promise<any> {
+    const res = await fetch('http://localhost:5231/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
     });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || 'Login failed');
+    }
+    return res.json();
   }
 
   async getCurrentUser(): Promise<User | null> {

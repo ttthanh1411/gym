@@ -50,5 +50,23 @@ namespace gym_be.Controllers
 
             return Ok(new { message = "Registration successful" });
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            var user = await _customerService.GetByEmailAsync(dto.Email);
+            if (user == null || user.Password != dto.Password)
+            {
+                return Unauthorized(new { message = "Invalid email or password." });
+            }
+            // Optionally, set up authentication/session/cookie here
+            return Ok(new { 
+                message = "Login successful", 
+                userId = user.CustomerID,
+                name = user.Name,
+                email = user.Email,
+                type = user.Type // 0 = admin, 1 = user
+            });
+        }
     }
 } 
