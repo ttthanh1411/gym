@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,8 @@ import {
     LogOut,
     Settings
 } from 'lucide-react';
+import AuthService from '@/service/authService';
+import { useRouter } from 'next/navigation';
 
 const navigation = [
     { name: 'Trang chủ', href: '/user', icon: Home },
@@ -33,6 +35,14 @@ export default function UserLayout({
 }) {
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const user = AuthService.getCurrentUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!user) {
+            router.push('/auth/login');
+        }
+    }, [user, router]);
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -70,11 +80,11 @@ export default function UserLayout({
                     <div className="p-6 bg-gray-50 border-b border-gray-200">
                         <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
-                                <span className="text-white font-semibold text-sm">JD</span>
+                                <span className="text-white font-semibold text-sm">{user?.name?.[0] || 'U'}</span>
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="font-medium text-gray-900 truncate">John Doe</p>
-                                <p className="text-sm text-gray-500">Premium Member</p>
+                                <p className="font-medium text-gray-900 truncate">{user?.name || 'User'}</p>
+                                <p className="text-sm text-gray-500">{user?.email || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -111,7 +121,7 @@ export default function UserLayout({
                             <Settings className="mr-3 h-4 w-4" />
                             <span className="truncate">Cài đặt</span>
                         </button>
-                        <button className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors" onClick={() => { AuthService.logout(); router.push('/auth/login'); }}>
                             <LogOut className="mr-3 h-4 w-4" />
                             <span className="truncate">Đăng xuất</span>
                         </button>

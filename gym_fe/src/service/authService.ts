@@ -32,23 +32,19 @@ class AuthService {
       const error = await res.json();
       throw new Error(error.message || 'Login failed');
     }
-    return res.json();
+    const user = await res.json();
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
   }
 
-  async getCurrentUser(): Promise<User | null> {
-    const token = localStorage.getItem('auth_token');
-    const userData = localStorage.getItem('user_data');
-    
-    if (token && userData) {
-      return JSON.parse(userData);
-    }
-    
-    return null;
+  getCurrentUser() {
+    if (typeof window === 'undefined') return null;
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
   }
 
-  logout(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
+  logout() {
+    localStorage.removeItem('user');
   }
 }
 
