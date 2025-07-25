@@ -95,6 +95,8 @@ namespace gym_be.Services
             existing.Address = updatedCustomer.Address;
             existing.Type = updatedCustomer.Type;
             // Các trường khác nếu có...
+            existing.Height = updatedCustomer.Height;
+            existing.Weight = updatedCustomer.Weight;
 
             await _repository.SaveChangesAsync();
             return existing;

@@ -102,7 +102,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         ...formData,
         type: 0, // or whatever default type is appropriate
         phoneNumber: '',
-        address: 'No address',
+        address: '',
         status: 1 // or get from formData if you have a phone number field
       });
       setApiSuccess('Registration successful! You can now log in.');

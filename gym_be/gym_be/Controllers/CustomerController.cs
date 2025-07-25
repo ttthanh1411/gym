@@ -85,6 +85,8 @@ namespace gym_be.Controllers
             existing.Address = dto.Address;
             if (dto.Type.HasValue) existing.Type = dto.Type.Value;
             if (dto.Status.HasValue) existing.Status = dto.Status.Value;
+            existing.Height = dto.Height;
+            existing.Weight = dto.Weight;
             await _service.UpdateAsync(id, existing);
             return Ok(existing);
         }
