@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { fetchAllServices } from '../../service/serviceService';
 import { fetchAllSchedules } from '../../service/workOutCourse';
 import { WorkoutCourse } from '../../type/workOutCourse';
 
@@ -33,15 +34,18 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     durationweek: '', // keep as string for input
     description: '',
     schedules: [] as string[],
-    price: '' // keep as string for input
+    price: '', // keep as string for input
+    serviceid: '' // add serviceid
   });
   const [allSchedules, setAllSchedules] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   React.useEffect(() => {
     if (isOpen) {
       fetchAllSchedules().then(setAllSchedules).catch(() => setAllSchedules([]));
+      fetchAllServices().then(setServices).catch(() => setServices([]));
     }
   }, [isOpen]);
 
@@ -72,7 +76,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
       newErrors.personaltrainer = 'Please select a trainer';
     }
 
-    if (formData.durationweek < 1 || formData.durationweek > 52) {
+    if (Number(formData.durationweek) < 1 || Number(formData.durationweek) > 52) {
       newErrors.durationweek = 'Duration must be between 1 and 52 weeks';
     }
 
@@ -108,7 +112,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
         description: formData.description,
         trainername: selectedTrainer?.name || '',
         schedules: formData.schedules,
-        price: parseFloat(formData.price) || 0 // convert to number for backend
+        price: parseFloat(formData.price) || 0, // convert to number for backend
+        serviceid: formData.serviceid // add serviceid
       };
 
       onAddCourse(newCourse);
@@ -297,6 +302,27 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
                 {formData.description.length}/256 characters
               </p>
             </div>
+          </div>
+
+          {/* Service Select */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <FileText className="w-4 h-4" />
+              Service
+            </label>
+            <select
+              name="serviceid"
+              value={formData.serviceid}
+              onChange={handleInputChange}
+              className="text-black w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white"
+            >
+              <option value="">Select a service...</option>
+              {services.map(service => (
+                <option key={service.serviceID || service.serviceid} value={service.serviceID || service.serviceid}>
+                  {service.serviceName || service.servicename}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Schedules Multi-Select */}

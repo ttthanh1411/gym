@@ -14,9 +14,9 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { fetchAllServices } from '../../../service/serviceService';
 import { fetchWorkoutCourses } from '../../../service/workOutCourse';
-
-const categories = ['Tất cả', 'Yoga', 'Cardio', 'Tăng cơ', 'HIIT', 'Pilates', 'Boxing'];
+import { Service } from '../../../type/service';
 
 export default function BuyCoursePage() {
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
@@ -24,13 +24,24 @@ export default function BuyCoursePage() {
   const [sortBy, setSortBy] = useState('popular');
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<string[]>(['Tất cả']);
 
   React.useEffect(() => {
     fetchWorkoutCourses().then(setCourses).finally(() => setLoading(false));
+    fetchAllServices().then((services: Service[]) => {
+      setServices(services);
+      const names = services.map((s) => s.serviceName || s.servicename).filter(Boolean);
+      setCategories(['Tất cả', ...Array.from(new Set(names))]);
+    });
   }, []);
 
+  // Find the selected serviceID based on selectedCategory
+  const selectedService = services.find(s => (s.serviceName || s.servicename) === selectedCategory);
+  const selectedServiceID = selectedService?.serviceID;
+
   const filteredCourses = courses.filter(course => {
-    const matchesCategory = selectedCategory === 'Tất cả' || (course.category === selectedCategory || course.coursename?.toLowerCase().includes(selectedCategory.toLowerCase()));
+    const matchesCategory = selectedCategory === 'Tất cả' || course.serviceid === selectedServiceID;
     const matchesSearch = (course.coursename || course.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (course.personaltrainername || course.instructor || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;

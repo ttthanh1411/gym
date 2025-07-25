@@ -5,7 +5,7 @@ export interface WorkoutCourse {
   coursename: string;
   imageurl: string;
   personaltrainername: string;
-  durationweek: number;
+  durationweek: number | string;
   description: string;
   schedules: Schedule[] | any;
   trainername?: string;

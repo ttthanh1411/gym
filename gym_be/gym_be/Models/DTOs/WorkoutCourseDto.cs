@@ -10,6 +10,7 @@
         public string Description { get; set; }
         public string PersonalTrainerName { get; set; } 
         public decimal Price { get; set; }
+        public Guid ServiceId { get; set; }
         public List<Guid> Schedules { get; set; } = new List<Guid>();
     }
 }

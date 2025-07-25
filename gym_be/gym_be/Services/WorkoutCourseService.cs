@@ -26,7 +26,8 @@ namespace gym_be.Services
                 Description = course.Description,
                 PersonalTrainerName = course.PersonalTrainer?.Name,
                 Schedules = course.Schedules,
-                Price = course.Price // map price
+                Price = course.Price,
+                ServiceId = course.ServiceId // map serviceid
             }).ToList();
         }
 
@@ -46,7 +47,8 @@ namespace gym_be.Services
                 Description = course.Description,
                 PersonalTrainerName = course.PersonalTrainer?.Name,
                 Schedules = course.Schedules,
-                Price = course.Price // add price mapping
+                Price = course.Price,
+                ServiceId = course.ServiceId // map serviceid
             };
         }
 
@@ -61,7 +63,8 @@ namespace gym_be.Services
                 DurationWeek = workoutCourseDto.DurationWeek,
                 Description = workoutCourseDto.Description,
                 Schedules = workoutCourseDto.Schedules ?? new List<Guid>(),
-                Price = workoutCourseDto.Price // map price
+                Price = workoutCourseDto.Price,
+                ServiceId = workoutCourseDto.ServiceId // map serviceid
             };
             await _workoutCourseRepository.CreateWorkoutCourseAsync(workoutCourse);
         }
@@ -77,7 +80,8 @@ namespace gym_be.Services
                 workoutCourse.DurationWeek = workoutCourseDto.DurationWeek;
                 workoutCourse.Description = workoutCourseDto.Description;
                 workoutCourse.Schedules = workoutCourseDto.Schedules ?? new List<Guid>();
-                workoutCourse.Price = workoutCourseDto.Price; // map price
+                workoutCourse.Price = workoutCourseDto.Price;
+                workoutCourse.ServiceId = workoutCourseDto.ServiceId; // map serviceid
                 await _workoutCourseRepository.UpdateWorkoutCourseAsync(workoutCourse);
             }
         }
