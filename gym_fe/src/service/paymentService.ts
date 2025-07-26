@@ -50,6 +50,21 @@ interface Schedule {
   teachername: string;
 }
 
+interface PaymentHistory {
+  paymentId: string;
+  courseId: string;
+  courseName: string;
+  instructor: string;
+  amount: number;
+  originalAmount: number;
+  status: string;
+  date: string;
+  paymentMethod: string;
+  transactionId: string;
+  discount: number;
+  paidAt: string;
+}
+
 class PaymentService {
   private baseUrl = 'http://localhost:5231/api/payment';
 
@@ -110,6 +125,21 @@ class PaymentService {
 
     return response.json();
   }
+
+  async getPaymentHistory(customerId: string): Promise<PaymentHistory[]> {
+    const response = await fetch(`${this.baseUrl}/history/${customerId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get payment history');
+    }
+
+    return response.json();
+  }
 }
 
-export default new PaymentService(); 
+export default new PaymentService();
+export type { PaymentHistory }; 

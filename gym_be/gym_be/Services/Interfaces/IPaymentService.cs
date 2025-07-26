@@ -8,6 +8,7 @@ namespace gym_be.Services.Interfaces
         Task<object> SavePaymentAsync(SavePaymentRequest request);
         Task<IEnumerable<object>> GetMyCoursesAsync(Guid customerId);
         Task<IEnumerable<object>> GetMySchedulesAsync(Guid customerId);
+        Task<IEnumerable<object>> GetPaymentHistoryAsync(Guid customerId);
     }
 
     public class CheckoutItem

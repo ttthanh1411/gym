@@ -41,5 +41,12 @@ namespace gym_be.Controllers
             var result = await _paymentService.GetMySchedulesAsync(customerId);
             return Ok(result);
         }
+
+        [HttpGet("history/{customerId}")]
+        public async Task<IActionResult> GetPaymentHistory(Guid customerId)
+        {
+            var result = await _paymentService.GetPaymentHistoryAsync(customerId);
+            return Ok(result);
+        }
     }
 }
