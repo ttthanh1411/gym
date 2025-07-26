@@ -92,8 +92,9 @@ const UserManagement: React.FC = () => {
 
   const getTypeLabel = (type: number) => {
     switch (type) {
+      case 0: return "Admin"
       case 1: return 'Người Tập';
-      case 0: return 'PT';
+      case 2: return 'PT';
     }
   };
 
@@ -131,8 +132,9 @@ const UserManagement: React.FC = () => {
 
   const getTypeColor = (type: number) => {
     switch (type) {
+      case 0: return 'bg-blue-100 text-center text-blue-800';
       case 1: return 'bg-green-100 text-center text-green-800';
-      case 0: return 'bg-red-100 text-center text-red-800';
+      case 2: return 'bg-red-100 text-center text-red-800';
     }
   };
 
@@ -539,6 +541,7 @@ const UserManagement: React.FC = () => {
                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition-all
                                     duration-200 bg-gray-50 focus:bg-white appearance-none"
                         >
+                          <option value={0}></option>
                           <option value={1}>Người Tập</option>
                           <option value={2}>PT</option>
                         </select>
