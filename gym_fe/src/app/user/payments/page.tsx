@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 import {
   CreditCard,
   Download,
@@ -12,127 +12,112 @@ import {
   Search,
   CheckCircle,
   XCircle,
-  AlertCircle
-} from 'lucide-react';
+  AlertCircle,
+} from "lucide-react";
+import paymentService from "@/service/paymentService";
+import { useUser } from "@/context/UserContext";
 
-const paymentStats = [
-  {
-    name: 'Tổng chi tiêu',
-    value: '12,500,000₫',
-    change: '+1,800,000₫ tháng này',
-    changeType: 'increase',
-    icon: DollarSign,
-  },
-  {
-    name: 'Giao dịch thành công',
-    value: '18',
-    change: '+3 tháng này',
-    changeType: 'increase',
-    icon: CheckCircle,
-  },
-  {
-    name: 'Đang chờ xử lý',
-    value: '1',
-    change: 'Chờ xác nhận',
-    changeType: 'neutral',
-    icon: AlertCircle,
-  },
-  {
-    name: 'Tiết kiệm được',
-    value: '3,200,000₫',
-    change: 'Từ các ưu đãi',
-    changeType: 'increase',
-    icon: TrendingUp,
-  },
-];
-
-const transactions = [
-  {
-    id: 'INV-2024-001',
-    courseName: 'Yoga cơ bản cho người mới',
-    instructor: 'Cô Mai Linh',
-    amount: 1500000,
-    originalAmount: 2000000,
-    status: 'completed',
-    date: '2024-01-10',
-    paymentMethod: 'Thẻ tín dụng',
-    transactionId: 'TXN-ABC123',
-    discount: 500000,
-  },
-  {
-    id: 'INV-2024-002',
-    courseName: 'Cardio đốt cháy mỡ thừa',
-    instructor: 'Thầy Nam Khánh',
-    amount: 1800000,
-    originalAmount: 2400000,
-    status: 'completed',
-    date: '2024-01-08',
-    paymentMethod: 'Ví điện tử',
-    transactionId: 'TXN-DEF456',
-    discount: 600000,
-  },
-  {
-    id: 'INV-2024-003',
-    courseName: 'Tăng cơ cho nam giới',
-    instructor: 'Thầy Hùng Cường',
-    amount: 2200000,
-    originalAmount: 2800000,
-    status: 'pending',
-    date: '2024-01-15',
-    paymentMethod: 'Chuyển khoản',
-    transactionId: 'TXN-GHI789',
-    discount: 600000,
-  },
-  {
-    id: 'INV-2024-004',
-    courseName: 'Personal Training Package',
-    instructor: 'Thầy Nam Khánh',
-    amount: 3500000,
-    originalAmount: 4000000,
-    status: 'completed',
-    date: '2024-01-05',
-    paymentMethod: 'Thẻ tín dụng',
-    transactionId: 'TXN-JKL012',
-    discount: 500000,
-  },
-  {
-    id: 'INV-2024-005',
-    courseName: 'HIIT giảm cân nhanh',
-    instructor: 'Cô Lan Anh',
-    amount: 1600000,
-    originalAmount: 2100000,
-    status: 'failed',
-    date: '2024-01-12',
-    paymentMethod: 'Thẻ tín dụng',
-    transactionId: 'TXN-MNO345',
-    discount: 500000,
-  },
-];
+interface PaymentHistory {
+  paymentId: string;
+  courseId: string;
+  courseName: string;
+  instructor: string;
+  amount: number;
+  originalAmount: number;
+  status: string;
+  date: string;
+  paymentMethod: string;
+  transactionId: string;
+  discount: number;
+  paidAt: string;
+}
 
 export default function PaymentsPage() {
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [transactions, setTransactions] = useState<PaymentHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
+
+  useEffect(() => {
+    const fetchPaymentHistory = async () => {
+      if (!user?.userId) {
+        setError("Không tìm thấy thông tin người dùng");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const history = await paymentService.getPaymentHistory(user.userId);
+        setTransactions(history);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Có lỗi xảy ra khi tải lịch sử giao dịch"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPaymentHistory();
+  }, [user?.userId]);
+
+  // Tính toán thống kê từ dữ liệu thực
+  const paymentStats = [
+    {
+      name: "Tổng chi tiêu",
+      value: new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(transactions.reduce((sum, t) => sum + t.amount, 0)),
+      change: "Từ tất cả giao dịch",
+      changeType: "increase" as const,
+      icon: DollarSign,
+    },
+    {
+      name: "Giao dịch thành công",
+      value: transactions
+        .filter((t) => t.status === "completed")
+        .length.toString(),
+      change: "Giao dịch hoàn thành",
+      changeType: "increase" as const,
+      icon: CheckCircle,
+    },
+    {
+      name: "Đang chờ xử lý",
+      value: transactions
+        .filter((t) => t.status === "pending")
+        .length.toString(),
+      change: "Chờ xác nhận",
+      changeType: "neutral" as const,
+      icon: AlertCircle,
+    },
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'failed':
-        return 'bg-red-100 text-red-700 border-red-200';
+      case "completed":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "failed":
+        return "bg-red-100 text-red-700 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="w-4 h-4" />;
-      case 'pending':
+      case "pending":
         return <AlertCircle className="w-4 h-4" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="w-4 h-4" />;
       default:
         return null;
@@ -141,29 +126,35 @@ export default function PaymentsPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'Thành công';
-      case 'pending':
-        return 'Đang xử lý';
-      case 'failed':
-        return 'Thất bại';
+      case "completed":
+        return "Thành công";
+      case "pending":
+        return "Đang xử lý";
+      case "failed":
+        return "Thất bại";
       default:
         return status;
     }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
-  const filteredTransactions = transactions.filter(transaction => {
-    const matchesStatus = filterStatus === 'all' || transaction.status === filterStatus;
-    const matchesSearch = transaction.courseName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         transaction.instructor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredTransactions = transactions.filter((transaction) => {
+    const matchesStatus =
+      filterStatus === "all" || transaction.status === filterStatus;
+    const matchesSearch =
+      transaction.courseName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      transaction.instructor
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      transaction.paymentId.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -180,14 +171,21 @@ export default function PaymentsPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {paymentStats.map((stat) => (
-          <div key={stat.name} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div
+            key={stat.name}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+          >
             <div className="flex items-center justify-between">
               <div className="p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
                 <stat.icon className="w-6 h-6 text-purple-600" />
               </div>
-              <span className={`text-sm font-medium ${
-                stat.changeType === 'increase' ? 'text-green-600' : 'text-gray-600'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  stat.changeType === "increase"
+                    ? "text-green-600"
+                    : "text-gray-600"
+                }`}
+              >
                 {stat.change}
               </span>
             </div>
@@ -238,66 +236,91 @@ export default function PaymentsPage() {
       {/* Transactions List */}
       <div className="space-y-4">
         {filteredTransactions.map((transaction) => (
-          <div key={transaction.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{transaction.courseName}</h3>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(transaction.status)}`}>
-                    {getStatusIcon(transaction.status)}
-                    <span className="ml-1">{getStatusText(transaction.status)}</span>
-                  </span>
+          <div
+            key={transaction.paymentId}
+            className="bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow border border-purple-100 p-0 md:p-0 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex flex-col md:flex-row items-stretch">
+              {/* Left: Status bar */}
+              <div className="w-full md:w-2 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none bg-gradient-to-b md:bg-gradient-to-r from-purple-400 to-purple-200" />
+              {/* Main content */}
+              <div className="flex-1 p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-4">
+                {/* Info */}
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                    <h3 className="text-xl font-bold text-purple-900 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-purple-400 mr-1" />
+                      {transaction.courseName}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border-2 border-dashed mt-2 sm:mt-0 ${getStatusColor(
+                        transaction.status
+                      )}`}
+                    >
+                      {getStatusIcon(transaction.status)}
+                      <span className="ml-1">
+                        {getStatusText(transaction.status)}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-700">
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">Ngày thanh toán:</span>
+                      <span className="font-medium">
+                        {transaction.paidAt
+                          ? new Date(transaction.paidAt).toLocaleString(
+                              "vi-VN",
+                              {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              }
+                            )
+                          : "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">Phương thức:</span>
+                      <span className="font-medium">{transaction.paymentMethod}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">Mã GD:</span>
+                      <span className="font-mono">{transaction.transactionId}</span>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                    {new Date(transaction.date).toLocaleDateString('vi-VN')}
-                  </div>
-                  <div className="flex items-center">
-                    <CreditCard className="w-4 h-4 mr-2 text-gray-400" />
-                    {transaction.paymentMethod}
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-400 mr-2">#</span>
-                    {transaction.transactionId}
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-400 mr-2">ID:</span>
-                    {transaction.id}
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-600">
-                  Giảng viên: <span className="font-medium">{transaction.instructor}</span>
-                </p>
-
-                <div className="flex items-center space-x-4 mt-3">
-                  <div>
-                    <span className="text-2xl font-bold text-gray-900">
+                {/* Amount & Discount */}
+                <div className="flex flex-col items-end min-w-[140px]">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-extrabold text-purple-700">
                       {formatPrice(transaction.amount)}
                     </span>
                     {transaction.originalAmount > transaction.amount && (
-                      <span className="text-lg text-gray-500 line-through ml-2">
+                      <span className="text-base text-gray-400 line-through">
                         {formatPrice(transaction.originalAmount)}
                       </span>
                     )}
                   </div>
                   {transaction.discount > 0 && (
-                    <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded">
+                    <span className="bg-green-50 text-green-700 text-xs font-semibold px-2 py-1 rounded mt-1">
                       Tiết kiệm {formatPrice(transaction.discount)}
                     </span>
                   )}
                 </div>
-              </div>
-
-              <div className="flex space-x-2 ml-4">
-                <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Xem chi tiết">
-                  <Eye className="w-5 h-5" />
-                </button>
-                <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Tải hóa đơn">
-                  <Download className="w-5 h-5" />
-                </button>
+                {/* Actions */}
+                <div className="flex flex-row md:flex-col items-center gap-2 md:gap-3 min-w-[80px]">
+                  <button
+                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    title="Xem chi tiết"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button
+                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    title="Tải hóa đơn"
+                  >
+                    <Download className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -308,8 +331,12 @@ export default function PaymentsPage() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CreditCard className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy giao dịch</h3>
-            <p className="text-gray-600">Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Không tìm thấy giao dịch
+            </h3>
+            <p className="text-gray-600">
+              Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc.
+            </p>
           </div>
         )}
       </div>
