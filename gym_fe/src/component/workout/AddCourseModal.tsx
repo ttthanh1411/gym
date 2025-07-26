@@ -37,6 +37,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     price: '', // keep as string for input
     serviceid: '' // add serviceid
   });
+  
   const [allSchedules, setAllSchedules] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
 
@@ -104,6 +105,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
 
     if (validateForm()) {
       const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
+      
       const newCourse = {
         coursename: formData.coursename,
         imageurl: formData.imageurl,

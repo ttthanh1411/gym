@@ -22,6 +22,9 @@ namespace gym_be.Models
 
         public DbSet<Status> Status { get; set; }
 
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentDetail> PaymentDetails { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("public");

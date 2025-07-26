@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Calendar,
   Clock,
@@ -14,6 +14,8 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
+import AuthService from '@/service/authService';
+import PaymentService from '@/service/paymentService';
 
 const appointments = [
   {
@@ -76,6 +78,24 @@ export default function SchedulePage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('list');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [myCourses, setMyCourses] = useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+
+  useEffect(() => {
+    const user = AuthService.getCurrentUser();
+    if (!user) return;
+    const customerId = user.userId || user.customerID;
+    setLoadingCourses(true);
+    PaymentService.getMyCourses(customerId)
+      .then(data => {
+        setMyCourses(data);
+        setLoadingCourses(false);
+      })
+      .catch((error) => {
+        console.error('Failed to get courses:', error);
+        setLoadingCourses(false);
+      });
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -149,7 +169,7 @@ export default function SchedulePage() {
     <div className="space-y-6 max-w-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Lịch tập của tôi</h1>
+        <h1 className="text-3xl font-bold mb-2">Khoá tập của tôi</h1>
         <p className="text-blue-100 text-lg">
           Quản lý và theo dõi các buổi tập của bạn
         </p>
@@ -193,11 +213,6 @@ export default function SchedulePage() {
               <option value="cancelled">Đã hủy</option>
             </select>
           </div>
-
-          <button className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all flex items-center">
-            <Plus className="w-5 h-5 mr-2" />
-            Đặt lịch mới
-          </button>
         </div>
       </div>
 
@@ -261,67 +276,86 @@ export default function SchedulePage() {
       ) : (
         /* List View */
         <div className="space-y-4">
-          {filteredAppointments.map((appointment) => (
-            <div key={appointment.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900">{appointment.courseName}</h3>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(appointment.status)}`}>
-                      {getStatusIcon(appointment.status)}
-                      <span className="ml-1">{getStatusText(appointment.status)}</span>
+           {/* My Courses */}
+      <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-lg border border-gray-200 p-8">
+        <h2 className="text-2xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
+          <CheckCircle className="w-6 h-6 text-green-500" />
+          Khoá tập đã mua
+        </h2>
+        {loadingCourses ? (
+          <div className="flex items-center gap-2 text-blue-600 font-medium">
+            <svg className="animate-spin h-5 w-5 text-blue-500" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            Đang tải khoá học...
+          </div>
+        ) : myCourses.length === 0 ? (
+          <div className="flex flex-col items-center py-8 text-gray-500">
+            <XCircle className="w-10 h-10 mb-2 text-gray-300" />
+            <span className="text-lg font-medium">Bạn chưa mua khoá học nào.</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {myCourses.map(course => {
+              const {
+                courseId,
+                courseName,
+                imageUrl,
+                durationWeek,
+                ptName,
+                serviceName,
+                ...rest
+              } = course;
+
+              return (
+                <div
+                  key={courseId}
+                  className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow flex flex-col"
+                >
+                  <div className="relative mb-3">
+                    <img
+                      src={imageUrl || 'https://placehold.co/320x180?text=No+Image'}
+                      alt={courseName}
+                      className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                    />
+                    <span className="absolute top-2 right-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-semibold shadow">
+                      {durationWeek} tuần
                     </span>
-                    {appointment.type === 'personal' && (
-                      <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-1 rounded">
-                        1-1
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <div className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">{courseName}</div>
+                    <div className="text-gray-600 text-sm mb-2 line-clamp-2">{course.description}</div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Users className="w-4 h-4" />
+                      <span>PT: {ptName ? ptName : "Chưa có"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Thời lượng: {durationWeek} tuần</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                      <MapPin className="w-4 h-4" />
+                      <span>Dịch vụ: {serviceName ? serviceName : "Không rõ"}</span>
+                    </div>
+                    <div className="mt-auto flex items-center justify-between">
+                      <span className="text-base font-bold text-blue-600">
+                        {course.price?.toLocaleString('vi-VN')}₫
                       </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                      {new Date(appointment.date).toLocaleDateString('vi-VN')}
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                      {appointment.time}
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                      {appointment.location}
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-gray-400" />
-                      {appointment.participants}/{appointment.maxParticipants} người
+                      <button
+                        className="px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:from-blue-600 hover:to-blue-700 transition"
+                        // onClick={() => ...} // Có thể thêm chức năng xem chi tiết
+                      >
+                        Xem chi tiết
+                      </button>
                     </div>
                   </div>
-
-                  <p className="text-sm text-gray-600 mt-2">
-                    Giảng viên: <span className="font-medium">{appointment.instructor}</span>
-                  </p>
                 </div>
-
-                <div className="flex space-x-2 ml-4">
-                  {appointment.status === 'pending' && (
-                    <>
-                      <button className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-                        Xác nhận
-                      </button>
-                      <button className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                        Hủy
-                      </button>
-                    </>
-                  )}
-                  {appointment.status === 'confirmed' && (
-                    <button className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                      Đổi lịch
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
           {filteredAppointments.length === 0 && (
             <div className="text-center py-12">
@@ -330,9 +364,7 @@ export default function SchedulePage() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có lịch tập</h3>
               <p className="text-gray-600 mb-4">Hãy đặt lịch để bắt đầu hành trình fitness của bạn!</p>
-              <button className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all">
-                Đặt lịch ngay
-              </button>
+
             </div>
           )}
         </div>

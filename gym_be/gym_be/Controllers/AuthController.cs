@@ -67,7 +67,7 @@ namespace gym_be.Controllers
                 email = user.Email,
                 phone = user.PhoneNumber,
                 address = user.Address,
-                type = user.Type // 0 = admin, 1 = user
+                type = user.Type // 0 = admin, 1 = user, 2 = pt
             });
         }
     }

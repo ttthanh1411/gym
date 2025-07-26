@@ -540,7 +540,7 @@ const UserManagement: React.FC = () => {
                                     duration-200 bg-gray-50 focus:bg-white appearance-none"
                         >
                           <option value={1}>Người Tập</option>
-                          <option value={0}>PT</option>
+                          <option value={2}>PT</option>
                         </select>
                       </div>
                     </div>
