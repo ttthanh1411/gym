@@ -12,7 +12,12 @@ import {
   ChevronRight,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  X,
+  Star,
+  Zap,
+  Target,
+  BookOpen
 } from 'lucide-react';
 import AuthService from '@/service/authService';
 import PaymentService from '@/service/paymentService';
@@ -80,6 +85,10 @@ export default function SchedulePage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [myCourses, setMyCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  
+  // Modal state
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const user = AuthService.getCurrentUser();
@@ -164,6 +173,16 @@ export default function SchedulePage() {
   };
 
   const calendarDays = generateCalendarDays();
+
+  const handleViewDetails = (course: any) => {
+    setSelectedCourse(course);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedCourse(null);
+  };
 
   return (
     <div className="space-y-6 max-w-full">
@@ -339,12 +358,12 @@ export default function SchedulePage() {
                       <span>Dịch vụ: {serviceName ? serviceName : "Không rõ"}</span>
                     </div>
                     <div className="mt-auto flex items-center justify-between">
-                      <span className="text-base font-bold text-blue-600">
+                      {/* <span className="text-base font-bold text-blue-600">
                         {course.price?.toLocaleString('vi-VN')}₫
-                      </span>
+                      </span> */}
                       <button
                         className="px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:from-blue-600 hover:to-blue-700 transition"
-                        // onClick={() => ...} // Có thể thêm chức năng xem chi tiết
+                        onClick={() => handleViewDetails(course)}
                       >
                         Xem chi tiết
                       </button>
@@ -367,6 +386,165 @@ export default function SchedulePage() {
 
             </div>
           )}
+        </div>
+      )}
+
+      {/* Course Detail Modal */}
+      {showModal && selectedCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeModal}
+          />
+          
+          {/* Modal */}
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white rounded-t-2xl p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Chi tiết khoá học</h2>
+                <button
+                  onClick={closeModal}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column - Image and Basic Info */}
+                <div className="space-y-6">
+                  {/* Course Image */}
+                  <div className="relative">
+                    <img
+                      src={selectedCourse.imageUrl || 'https://placehold.co/600x400?text=No+Image'}
+                      alt={selectedCourse.courseName}
+                      className="w-full h-64 object-cover rounded-xl border border-gray-200"
+                    />
+                    <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      Đã mua
+                    </div>
+                  </div>
+
+                  {/* Course Stats */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center">
+                        <Clock className="w-5 h-5 text-blue-600 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-600">Thời lượng</p>
+                          <p className="font-semibold text-gray-900">{selectedCourse.durationWeek} tuần</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="flex items-center">
+                        <Target className="w-5 h-5 text-green-600 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-600">Trạng thái</p>
+                          <p className="font-semibold text-gray-900">Đang học</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Giá khoá học</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {selectedCourse.price?.toLocaleString('vi-VN')}₫
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Column - Details */}
+                <div className="space-y-6">
+                  {/* Course Name and Description */}
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      {selectedCourse.courseName}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {selectedCourse.description || 'Không có mô tả chi tiết cho khoá học này.'}
+                    </p>
+                  </div>
+
+                  {/* Instructor Info */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <Users className="w-5 h-5 mr-2 text-blue-600" />
+                      Thông tin huấn luyện viên
+                    </h4>
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-blue-600 font-semibold">
+                          {selectedCourse.ptName ? selectedCourse.ptName.charAt(0) : 'P'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {selectedCourse.ptName || 'Chưa có thông tin'}
+                        </p>
+                        <p className="text-sm text-gray-600">Personal Trainer</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Service Info */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <MapPin className="w-5 h-5 mr-2 text-green-600" />
+                      Thông tin dịch vụ
+                    </h4>
+                    <p className="text-gray-700">
+                      {selectedCourse.serviceName || 'Không có thông tin dịch vụ'}
+                    </p>
+                  </div>
+
+                  {/* Course Features */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <Zap className="w-5 h-5 mr-2 text-orange-600" />
+                      Đặc điểm khoá học
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                        <span>Thời lượng: {selectedCourse.durationWeek} tuần</span>
+                      </div>
+                      {/* <div className="flex items-center text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                        <span>Hỗ trợ 1-1 với PT</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                        <span>Lịch tập linh hoạt</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                        <span>Chứng chỉ hoàn thành</span>
+                      </div> */}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  {/* <div className="flex space-x-3 pt-4">
+                    <button className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 mr-2" />
+                      Bắt đầu học
+                    </button>
+                    <button className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                      Liên hệ PT
+                    </button>
+                  </div> */}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
