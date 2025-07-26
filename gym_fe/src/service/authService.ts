@@ -49,6 +49,8 @@ class AuthService {
 
   logout() {
     localStorage.removeItem('user');
+    // Clear user cookie
+    document.cookie = 'user=; path=/; max-age=0; secure; samesite=strict';
   }
 }
 
