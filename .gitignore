@@ -38,3 +38,12 @@ obj/
 *.cache
 *.tmp
 node_modules/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# API Keys and Secrets
+appsettings.Development.json
