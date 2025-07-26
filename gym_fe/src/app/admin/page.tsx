@@ -1,15 +1,44 @@
 'use client';
-import React, { useState } from 'react';
-import { Menu, X, Home, Users, Building, Settings, LogOut, Bell, Search, Wallpaper, CardSim, Package, Projector } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, X, Home, Users, Building, Settings, LogOut, Bell, Search, Wallpaper, CardSim, Package, Projector, Calendar } from 'lucide-react';
 import Link from 'next/link';
-
+import { usePathname } from 'next/navigation';
+import AuthService from '@/service/authService';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+// Navigation for regular admin users
+const regularAdminNavigation = [
+  { name: 'Báo cáo', href: '/admin/dashboard', icon: Home },
+  { name: 'Quản lý người dùng', href: '/admin/user', icon: Users },
+  { name: 'Quản lý lịch trình', href: '/admin/schedule', icon: Wallpaper },
+  { name: 'Quản lý dịch vụ', href: '/admin/service', icon: CardSim },
+  { name: 'Quản lý Các gói tập', href: '/admin/workout', icon: Package },
+  { name: 'Quản lý Các cuộc hẹn', href: '/admin/appointment', icon: Projector },
+  { name: 'Cài Đặt', href: '/admin/settings', icon: Settings },
+];
+
+// Navigation for PT users (type === 2)
+const ptAdminNavigation = [
+  { name: 'Khóa học của tôi', href: '/admin/pt-courses', icon: Calendar },
+];
+
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const currentUser = AuthService.getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
+  // Determine navigation based on user type
+  const navigation = user?.type === 2 ? ptAdminNavigation : regularAdminNavigation;
+  const isPTUser = user?.type === 2;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {sidebarOpen && (
@@ -20,7 +49,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       )}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-[#1A1363] to-[#332F42]">
-          <h1 className="text-xl font-bold text-white">Admin Panel</h1>
+          <h1 className="text-xl font-bold text-white">
+            {isPTUser ? 'PT Panel' : 'Admin Panel'}
+          </h1>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-white hover:text-gray-200"
@@ -30,59 +61,34 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
         
         <nav className="mt-8 px-4">
-          <Link
-            href="/admin/dashboard"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Home className="h-5 w-5 mr-3" />
-            Báo cáo
-          </Link>
-          <Link
-            href="/admin/user"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Users className="h-5 w-5 mr-3" />
-            Quản lý người dùng
-          </Link>
-          <Link
-            href="/admin/schedule"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Wallpaper className="h-5 w-5 mr-3" />
-            Quản lý lịch trình
-          </Link>
-          <Link
-            href="/admin/service"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <CardSim className="h-5 w-5 mr-3" />
-            Quản lý dịch vụ
-          </Link>
-          <Link
-            href="/admin/workout"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Package className="h-5 w-5 mr-3" />
-            Quản lý Các gói tập
-          </Link>
-          <Link
-            href="/admin/appointment"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Projector className="h-5 w-5 mr-3" />
-            Quản lý Các cuộc hẹn
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Settings className="h-5 w-5 mr-3" />
-            Cài Đặt
-          </Link>
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <item.icon className="h-5 w-5 mr-3" />
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="absolute bottom-0 w-full p-4">
-          <button className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+          <button 
+            className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+            onClick={() => {
+              AuthService.logout();
+              window.location.href = '/auth/login';
+            }}
+          >
             <LogOut className="h-5 w-5 mr-3" />
             Sign Out
           </button>
@@ -118,11 +124,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               
               <div className="flex items-center space-x-3">
                 <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">A</span>
+                  <span className="text-white text-sm font-medium">{user?.name?.[0] || 'A'}</span>
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-700">Admin User</p>
-                  <p className="text-xs text-gray-500">admin@example.com</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {user?.name || 'Admin User'}
+                    {isPTUser && <span className="ml-2 text-xs text-blue-600 font-medium">(PT)</span>}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.email || 'admin@example.com'}</p>
                 </div>
               </div>
             </div>

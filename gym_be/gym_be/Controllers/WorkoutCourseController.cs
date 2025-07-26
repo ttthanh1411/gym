@@ -1,6 +1,8 @@
 ﻿using gym_be.Models.DTOs;
 using gym_be.Services;
 using Microsoft.AspNetCore.Mvc;
+using gym_be.Models;
+using gym_be.Models.Entities;
 
 namespace gym_be.Controllers
 {
@@ -9,10 +11,12 @@ namespace gym_be.Controllers
     public class WorkoutCourseController : ControllerBase
     {
         private readonly IWorkoutCourseService _workoutCourseService;
+        private readonly GymContext _context;
 
-        public WorkoutCourseController(IWorkoutCourseService workoutCourseService)
+        public WorkoutCourseController(IWorkoutCourseService workoutCourseService, GymContext context)
         {
             _workoutCourseService = workoutCourseService;
+            _context = context;
         }
 
         [HttpGet]
@@ -70,6 +74,48 @@ namespace gym_be.Controllers
         {
             await _workoutCourseService.DeleteWorkoutCourseAsync(courseId);
             return NoContent();
+        }
+
+        [HttpGet("pt/{ptId}")]
+        public IActionResult GetCoursesByPT(Guid ptId)
+        {
+            // Lấy các khóa học của PT này, kèm tên dịch vụ
+            var courses = (from c in _context.WorkoutCourses
+                          join s in _context.Services on c.ServiceId equals s.ServiceID into serviceJoin
+                          from s in serviceJoin.DefaultIfEmpty()
+                          where c.PersonalTrainerId == ptId
+                          select new {
+                              courseId = c.CourseId,
+                              courseName = c.CourseName,
+                              imageUrl = c.ImageUrl,
+                              durationWeek = c.DurationWeek,
+                              description = c.Description,
+                              price = c.Price,
+                              serviceName = s != null ? s.ServiceName : null,
+                              schedules = c.Schedules
+                          }).ToList();
+
+            return Ok(courses);
+        }
+
+        [HttpGet("students/{courseId}")]
+        public IActionResult GetStudentsByCourse(Guid courseId)
+        {
+            // Lấy danh sách học viên đã mua khoá học này
+            var students = (from pd in _context.PaymentDetails
+                           join p in _context.Payments on pd.PaymentId equals p.PaymentId
+                           join c in _context.Customers on pd.CustomerId equals c.CustomerID
+                           where pd.CourseId == courseId && p.Status == true
+                           select new {
+                               studentId = c.CustomerID,
+                               studentName = c.Name,
+                               studentEmail = c.Email,
+                               studentPhone = c.PhoneNumber,
+                               purchaseDate = p.PaidAt,
+                               price = pd.Price
+                           }).ToList();
+
+            return Ok(students);
         }
     }
 }

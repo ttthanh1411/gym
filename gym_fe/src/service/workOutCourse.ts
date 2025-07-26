@@ -123,7 +123,7 @@ export async function fetchTrainers() {
   if (!res.ok) throw new Error('Failed to fetch customers');
   const customers = await res.json();
   // type: 0 means PT (Personal Trainer)
-  return customers.filter((c: any) => c.type === 0);
+  return customers.filter((c: any) => c.type === 2);
 }
 
 export async function fetchAllSchedules() {

@@ -22,7 +22,6 @@ import { Service } from '../../../type/service';
 
 // Toast helper
 function showToast(message: string) {
-  // Simple toast implementation, can be replaced with a library like react-hot-toast
   const toast = document.createElement('div');
   toast.innerText = message;
   toast.className =
@@ -36,7 +35,6 @@ function showToast(message: string) {
   }, 1800);
 }
 
-// Add fade-in/out animation via style tag (only once)
 if (typeof window !== 'undefined' && !document.getElementById('custom-toast-style')) {
   const style = document.createElement('style');
   style.id = 'custom-toast-style';

@@ -73,7 +73,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     try {
       const res = await AuthService.login(formData);
       toast({ title: 'Login successful', description: `Welcome, ${res.name}` });
-      if (res.type === 0) {
+      if (res.type === 0 || res.type === 2) {
         router.push('/admin');
       } else if (res.type === 1) {
         router.push('/user');
