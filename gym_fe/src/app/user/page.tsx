@@ -19,6 +19,7 @@ import {
 import Chatbot from "react-chatbot-kit";
 
 import AuthService from "@/service/authService";
+import PaymentService from "@/service/paymentService";
 
 import ActionProvider from "./ActionProvider";
 import config from "./config";
@@ -85,14 +86,16 @@ export default function UserDashboard() {
     if (!user) return;
     const customerId = user.userId || user.customerID;
     setLoadingSchedules(true);
-    fetch(`http://localhost:5231/api/payment/my-schedules/${customerId}`)
-      .then((res) => res.json())
+    PaymentService.getMySchedules(customerId)
       .then((data) => {
         console.log(data);
         setSchedules(data);
         setLoadingSchedules(false);
       })
-      .catch(() => setLoadingSchedules(false));
+      .catch((error) => {
+        console.error('Failed to get schedules:', error);
+        setLoadingSchedules(false);
+      });
   }, []);
 
   return (
@@ -213,27 +216,27 @@ export default function UserDashboard() {
               <div className="space-y-4">
                 {schedules.map((schedule: any) => (
                   <div
-                    key={schedule.scheduleID || schedule.ScheduleID}
+                    key={schedule.scheduleId}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">Buổi tập</h4>
                       <p className="text-sm text-gray-600 mt-1">
-                        Khóa tập: {schedule.coursename}
+                        Khóa tập: {schedule.courseName}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">
-                        Tên giáo viên: {schedule.teachername}
+                        Tên giáo viên: {schedule.teacherName}
                       </p>
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="mr-1">🕒</span>
                         <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                          {schedule.dayofweek}
+                          {schedule.dayOfWeek}
                         </span>
                         <div className="flex flex-col text-xs text-gray-500">
                           <div className="flex items-center pl-4">
                             {(() => {
-                              let start = schedule.starttime;
-                              let end = schedule.endtime;
+                              let start = schedule.startTime;
+                              let end = schedule.endTime;
 
                               const startDate = new Date(start);
                               const endDate = new Date(end);

@@ -102,15 +102,16 @@ export default function BuyCoursePage() {
     return true;
   };
 
-  // Hàm xử lý khi nhấn "Mua ngay"
+  // Hàm xử lý khi nhấn "Mua ngay" - luôn thêm vào giỏ và chuyển trang cart ngay lập tức
   const handleBuyNow = (course: any) => {
-    const added = handleAddToCart(course);
-    if (added !== false) {
-      // Đợi toast hiển thị một chút rồi chuyển trang (nếu muốn mượt mà)
-      setTimeout(() => {
-        router.push('/user/cart');
-      }, 500);
+    const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const idx = cartItems.findIndex((item: any) => item.id === (course.courseid || course.id));
+    if (idx === -1) {
+      cartItems.push({ ...course, id: course.courseid || course.id, quantity: 1 });
+      localStorage.setItem("cartItems", JSON.stringify(cartItems));
+      window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
     }
+    router.push('/user/cart');
   };
 
   return (

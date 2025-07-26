@@ -15,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import AuthService from '@/service/authService';
+import PaymentService from '@/service/paymentService';
 
 const appointments = [
   {
@@ -85,13 +86,15 @@ export default function SchedulePage() {
     if (!user) return;
     const customerId = user.userId || user.customerID;
     setLoadingCourses(true);
-    fetch(`http://localhost:5231/api/payment/my-courses/${customerId}`)
-      .then(res => res.json())
+    PaymentService.getMyCourses(customerId)
       .then(data => {
         setMyCourses(data);
         setLoadingCourses(false);
       })
-      .catch(() => setLoadingCourses(false));
+      .catch((error) => {
+        console.error('Failed to get courses:', error);
+        setLoadingCourses(false);
+      });
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -294,50 +297,62 @@ export default function SchedulePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myCourses.map(course => (
-              <div
-                key={course.courseid}
-                className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow flex flex-col"
-              >
-                <div className="relative mb-3">
-                  <img
-                    src={course.imageurl || 'https://placehold.co/320x180?text=No+Image'}
-                    alt={course.coursename}
-                    className="w-full h-40 object-cover rounded-lg border border-gray-200"
-                  />
-                  <span className="absolute top-2 right-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-semibold shadow">
-                    {course.durationweek} tuần
-                  </span>
-                </div>
-                <div className="flex-1 flex flex-col">
-                  <div className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">{course.coursename}</div>
-                  <div className="text-gray-600 text-sm mb-2 line-clamp-2">{course.description}</div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                    <Users className="w-4 h-4" />
-                    <span>PT: {course.personaltrainerid ? course.personaltrainerid : "Chưa có"}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                    <Clock className="w-4 h-4" />
-                    <span>Thời lượng: {course.durationweek} tuần</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                    <MapPin className="w-4 h-4" />
-                    <span>Dịch vụ: {course.serviceid ? course.serviceid : "Không rõ"}</span>
-                  </div>
-                  <div className="mt-auto flex items-center justify-between">
-                    <span className="text-base font-bold text-blue-600">
-                      {course.price?.toLocaleString('vi-VN')}₫
+            {myCourses.map(course => {
+              const {
+                courseId,
+                courseName,
+                imageUrl,
+                durationWeek,
+                ptName,
+                serviceName,
+                ...rest
+              } = course;
+
+              return (
+                <div
+                  key={courseId}
+                  className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow flex flex-col"
+                >
+                  <div className="relative mb-3">
+                    <img
+                      src={imageUrl || 'https://placehold.co/320x180?text=No+Image'}
+                      alt={courseName}
+                      className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                    />
+                    <span className="absolute top-2 right-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-semibold shadow">
+                      {durationWeek} tuần
                     </span>
-                    <button
-                      className="px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:from-blue-600 hover:to-blue-700 transition"
-                      // onClick={() => ...} // Có thể thêm chức năng xem chi tiết
-                    >
-                      Xem chi tiết
-                    </button>
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <div className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">{courseName}</div>
+                    <div className="text-gray-600 text-sm mb-2 line-clamp-2">{course.description}</div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Users className="w-4 h-4" />
+                      <span>PT: {ptName ? ptName : "Chưa có"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Thời lượng: {durationWeek} tuần</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                      <MapPin className="w-4 h-4" />
+                      <span>Dịch vụ: {serviceName ? serviceName : "Không rõ"}</span>
+                    </div>
+                    <div className="mt-auto flex items-center justify-between">
+                      <span className="text-base font-bold text-blue-600">
+                        {course.price?.toLocaleString('vi-VN')}₫
+                      </span>
+                      <button
+                        className="px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:from-blue-600 hover:to-blue-700 transition"
+                        // onClick={() => ...} // Có thể thêm chức năng xem chi tiết
+                      >
+                        Xem chi tiết
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
