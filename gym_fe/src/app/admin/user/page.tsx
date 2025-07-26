@@ -284,7 +284,6 @@ const UserManagement: React.FC = () => {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">ID: {user.customerID}</div>
                           </div>
                         </div>
                       </td>
@@ -307,21 +306,25 @@ const UserManagement: React.FC = () => {
                           }} className="text-blue-600 hover:text-blue-900 transition-colors p-1 hover:bg-blue-50 rounded">
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button onClick={() => {
-                            setSelectedUser(user);
-                            setFormData({
-                              name: user.name,
-                              phoneNumber: user.phoneNumber,
-                              address: user.address,
-                              email: user.email,
-                              password: user.password,
-                              type: user.type,
-                              status: 1
-                            });
-                            setModalMode('edit');
-                            setShowAddModal(true);
-                          }}
-                            className="text-green-600 hover:text-green-900 transition-colors p-1 hover:bg-green-50 rounded">
+                          <button
+                            disabled={user.type === 0}
+                            style={{ opacity: user.type === 0 ? 0.1 : 1 }}
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setFormData({
+                                name: user.name,
+                                phoneNumber: user.phoneNumber,
+                                address: user.address,
+                                email: user.email,
+                                password: user.password,
+                                type: user.type,
+                                status: 1
+                              });
+                              setModalMode('edit');
+                              setShowAddModal(true);
+                            }}
+                            className="text-green-600 hover:text-green-900 transition-colors p-1 hover:bg-green-50 rounded"
+                          >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
@@ -330,9 +333,9 @@ const UserManagement: React.FC = () => {
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
-                          <button className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-50 rounded">
+                          {/* <button className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-50 rounded">
                             <MoreVertical className="h-4 w-4" />
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -541,7 +544,6 @@ const UserManagement: React.FC = () => {
                                     focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition-all
                                     duration-200 bg-gray-50 focus:bg-white appearance-none"
                         >
-                          <option value={0}></option>
                           <option value={1}>Người Tập</option>
                           <option value={2}>PT</option>
                         </select>

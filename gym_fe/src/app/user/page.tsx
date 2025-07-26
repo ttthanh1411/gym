@@ -25,6 +25,7 @@ import AppointmentService from "@/service/appointmentService";
 import ActionProvider from "./ActionProvider";
 import config from "./config";
 import MessageParser from "./MessageParser";
+import Link from "next/link";
 
 const stats = [
   {
@@ -173,12 +174,22 @@ export default function UserDashboard() {
             tiêu fitness của mình!
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
-            <button className="bg-white text-emerald-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+            <a
+              href="#schedule"
+              className="bg-white text-emerald-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById("schedule");
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+            >
               Xem lịch tập
-            </button>
-            <button className="bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-800 transition-colors">
+            </a>
+            <Link href="/user/buy" className="bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-800 transition-colors">
               Khám phá khóa học
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -214,7 +225,7 @@ export default function UserDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Schedules fetched from API */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div id="schedule" className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -339,12 +350,12 @@ export default function UserDashboard() {
                 ))}
               </div>
             )}
-            <button 
+            {/* <button 
               onClick={() => window.location.href = '/user/appointments'}
               className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium"
             >
               Xem tất cả cuộc hẹn →
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
