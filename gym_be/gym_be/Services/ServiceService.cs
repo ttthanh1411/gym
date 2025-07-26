@@ -60,8 +60,8 @@ namespace gym_be.Services
             {
                 keyword = keyword.ToLower();
                 query = query.Where(s =>
-                    s.ServiceName.ToLower().Contains(keyword) ||
-                    s.CourseDescription.ToLower().Contains(keyword));
+                    (s.ServiceName ?? "").ToLower().Contains(keyword) ||
+                    (s.CourseDescription ?? "").ToLower().Contains(keyword));
             }
 
             var total = await query.CountAsync();
