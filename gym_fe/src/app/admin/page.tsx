@@ -1,8 +1,27 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Menu, X, Home, Users, Building, Settings, LogOut, Bell, Search, Wallpaper, CardSim, Package, Projector, Calendar } from 'lucide-react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  Bell,
+  Calendar,
+  CardSim,
+  Home,
+  LogOut,
+  Menu,
+  Package,
+  Projector,
+  Search,
+  Settings,
+  Users,
+  Wallpaper,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 import AuthService from '@/service/authService';
 
 interface AdminLayoutProps {
@@ -42,7 +61,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -59,7 +78,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <X className="h-6 w-6" />
           </button>
         </div>
-        
+
         <nav className="mt-8 px-4">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
@@ -67,11 +86,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg mb-2 transition-colors duration-200 ${isActive
+                  ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
                 onClick={() => setSidebarOpen(false)}
               >
                 <item.icon className="h-5 w-5 mr-3" />
@@ -82,7 +100,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </nav>
 
         <div className="absolute bottom-0 w-full p-4">
-          <button 
+          <button
             className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200"
             onClick={() => {
               AuthService.logout();
@@ -104,34 +122,36 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             >
               <Menu className="h-6 w-6" />
             </button>
-            
-            <div className="flex items-center space-x-4">
+
+            <div className="flex w-full justify-between items-center space-x-4">
               <div className="relative">
                 <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 min-w-[400px] pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              
-              <button className="relative text-gray-400 hover:text-gray-500">
-                <Bell className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
-                  3
-                </span>
-              </button>
-              
-              <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">{user?.name?.[0] || 'A'}</span>
-                </div>
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-700">
-                    {user?.name || 'Admin User'}
-                    {isPTUser && <span className="ml-2 text-xs text-blue-600 font-medium">(PT)</span>}
-                  </p>
-                  <p className="text-xs text-gray-500">{user?.email || 'admin@example.com'}</p>
+
+              <div className='flex items-center gap-5'>
+                <button className="relative text-gray-400 hover:text-gray-500">
+                  <Bell className="h-6 w-6" />
+                  <span className="absolute -top-2 -right-2 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                    3
+                  </span>
+                </button>
+
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">{user?.name?.[0] || 'A'}</span>
+                  </div>
+                  <div className="hidden md:block">
+                    <p className="text-sm font-medium text-gray-700">
+                      {user?.name || 'Admin User'}
+                      {isPTUser && <span className="ml-2 text-xs text-blue-600 font-medium">(PT)</span>}
+                    </p>
+                    <p className="text-xs text-gray-500">{user?.email || 'admin@example.com'}</p>
+                  </div>
                 </div>
               </div>
             </div>
