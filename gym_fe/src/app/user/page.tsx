@@ -20,6 +20,7 @@ import Chatbot from "react-chatbot-kit";
 
 import AuthService from "@/service/authService";
 import PaymentService from "@/service/paymentService";
+import AppointmentService from "@/service/appointmentService";
 
 import ActionProvider from "./ActionProvider";
 import config from "./config";
@@ -81,10 +82,16 @@ export default function UserDashboard() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(true);
 
+  // State for appointments
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+
   useEffect(() => {
     const user = AuthService.getCurrentUser();
     if (!user) return;
     const customerId = user.userId || user.customerID;
+    
+    // Fetch schedules
     setLoadingSchedules(true);
     PaymentService.getMySchedules(customerId)
       .then((data) => {
@@ -95,6 +102,19 @@ export default function UserDashboard() {
       .catch((error) => {
         console.error('Failed to get schedules:', error);
         setLoadingSchedules(false);
+      });
+
+    // Fetch appointments
+    setLoadingAppointments(true);
+    AppointmentService.getMyAppointments(customerId)
+      .then((data) => {
+        console.log('Appointments:', data);
+        setAppointments(data);
+        setLoadingAppointments(false);
+      })
+      .catch((error) => {
+        console.error('Failed to get appointments:', error);
+        setLoadingAppointments(false);
       });
   }, []);
 
@@ -268,42 +288,62 @@ export default function UserDashboard() {
           </div>
         </div>
 
-        {/* Recent achievements */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">
-                Thành tích gần đây
+                Cuộc hẹn của tôi
               </h3>
-              <Award className="w-5 h-5 text-gray-400" />
+              <Calendar className="w-5 h-5 text-gray-400" />
             </div>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentAchievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className="flex items-start space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg"
-                >
-                  <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg">
-                    <Trophy className="w-4 h-4 text-white" />
+            {loadingAppointments ? (
+              <div className="text-center text-gray-500 py-8">
+                Đang tải cuộc hẹn...
+              </div>
+            ) : appointments.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                Bạn chưa có cuộc hẹn nào.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {appointments.slice(0, 3).map((appointment) => (
+                  <div
+                    key={appointment.appointmentId}
+                    className="flex items-start space-x-4 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg hover:bg-gradient-to-r hover:from-emerald-100 hover:to-blue-100 transition-colors"
+                  >
+                    <div className="p-2 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-lg">
+                      <Calendar className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">
+                        {appointment.appointmentName}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {appointment.serviceName}
+                      </p>
+                      <div className="flex items-center mt-2 space-x-4">
+                        <span className="text-xs text-gray-500">
+                          {new Date(appointment.appointmentDate).toLocaleDateString('vi-VN')}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {appointment.appointmentTime.substring(0, 5)}
+                        </span>
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                          {appointment.price?.toLocaleString('vi-VN')}₫
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">
-                      {achievement.title}
-                    </h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {achievement.description}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {achievement.date}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-              Xem tất cả thành tích →
+                ))}
+              </div>
+            )}
+            <button 
+              onClick={() => window.location.href = '/user/appointments'}
+              className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              Xem tất cả cuộc hẹn →
             </button>
           </div>
         </div>

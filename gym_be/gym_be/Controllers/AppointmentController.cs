@@ -1,6 +1,9 @@
 ﻿using gym_be.Models.DTOs;
 using gym_be.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using gym_be.Models.Entities;
+using Microsoft.EntityFrameworkCore;
+using gym_be.Models;
 
 namespace gym_be.Controllers
 {
@@ -9,10 +12,12 @@ namespace gym_be.Controllers
     public class AppointmentController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
+        private readonly GymContext _context;
 
-        public AppointmentController(IAppointmentService appointmentService)
+        public AppointmentController(IAppointmentService appointmentService, GymContext context)
         {
             _appointmentService = appointmentService;
+            _context = context;
         }
 
         [HttpGet("{id}")]
@@ -29,6 +34,35 @@ namespace gym_be.Controllers
         public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetAppointments()
         {
             var appointments = await _appointmentService.GetAllAppointmentsAsync();
+            return Ok(appointments);
+        }
+
+        [HttpGet("my-appointments/{customerId}")]
+        public async Task<IActionResult> GetMyAppointments(Guid customerId)
+        {
+            var appointments = await _context.Appointments
+                .Where(a => a.customerid == customerId)
+                .Include(a => a.Service)
+                .Include(a => a.Schedule)
+                .Include(a => a.Customer)
+                .Select(a => new
+                {
+                    appointmentId = a.appointmentid,
+                    appointmentName = a.appointmentname,
+                    appointmentDate = a.appointmentdate,
+                    appointmentTime = a.appointmenttime,
+                    price = a.price,
+                    serviceName = a.Service != null ? a.Service.ServiceName : "Không rõ",
+                    scheduleInfo = a.Schedule != null ? new
+                    {
+                        dayOfWeek = a.Schedule.DayOfWeek,
+                        startTime = a.Schedule.StartTime,
+                        endTime = a.Schedule.EndTime
+                    } : null,
+                    status = a.statusid
+                })
+                .ToListAsync();
+
             return Ok(appointments);
         }
 

@@ -37,8 +37,6 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     price: '', // keep as string for input
     serviceid: '' // add serviceid
   });
-
-  console.log(trainers);
   
   const [allSchedules, setAllSchedules] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
