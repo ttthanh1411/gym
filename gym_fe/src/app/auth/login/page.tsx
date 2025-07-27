@@ -146,8 +146,10 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       });
 
       // Redirect based on user type
-      if (res.type === 0 || res.type === 2) {
-        router.push("/admin");
+      if (res.type === 0) {
+        router.push("/admin/dashboard");
+      } else if (res.type === 2) {
+        router.push("/admin/pt-courses");
       } else if (res.type === 1) {
         router.push("/user");
       } else {
