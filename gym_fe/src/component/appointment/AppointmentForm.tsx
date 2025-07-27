@@ -73,13 +73,16 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Get the first schedule ID from the schedules array
+    const firstScheduleId = schedules.length > 0 ? (schedules[0].scheduleID || schedules[0].scheduleid) : '';
+
     // Format date and time as ISO strings for backend
     const appointmentData = {
       ...formData,
       appointmentdate: formData.appointmentdate + 'T00:00:00',
       appointmenttime: formData.appointmenttime + ':00', // send as HH:mm:ss
       appointmentid: appointment?.appointmentid,
-      scheduleid: formData.scheduleid || '',
+      scheduleid: firstScheduleId, // Use first schedule ID dynamically
       statusid: formData.statusid || ''
     };
 
@@ -208,8 +211,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
           {/* Remove the Price input field from the form UI */}
 
-          {/* Schedule */}
-          <div>
+          {/* Schedule - Hidden, using hardcoded UUID */}
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Lịch Hẹn
             </label>
@@ -228,7 +231,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                   </option>
                 ))}
             </select>
-          </div>
+          </div> */}
 
           {/* Status */}
           <div>
