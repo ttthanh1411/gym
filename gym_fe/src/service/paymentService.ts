@@ -139,7 +139,20 @@ class PaymentService {
 
     return response.json();
   }
+
+  async getUserStats(customerId: string): Promise<{ totalPackages: number; totalSpent: number }> {
+    const response = await fetch('http://localhost:5231/api/dashboard/user-stats/' + customerId, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get user stats');
+    }
+    return response.json();
+  }
 }
+
 
 export default new PaymentService();
 export type { PaymentHistory }; 
