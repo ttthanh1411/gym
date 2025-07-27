@@ -1,30 +1,30 @@
 'use client';
 
 import {
-  useEffect,
-  useState,
+    useEffect,
+    useState,
 } from 'react';
 
 import {
-  Bell,
-  Calendar,
-  CreditCard,
-  Dumbbell,
-  Home,
-  LogOut,
-  Menu,
-  Settings,
-  ShoppingCart,
-  User,
-  X,
-  Clock,
+    Bell,
+    Calendar,
+    CreditCard,
+    Dumbbell,
+    Home,
+    LogOut,
+    Menu,
+    Settings,
+    ShoppingCart,
+    User,
+    X,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
-  usePathname,
-  useRouter,
+    usePathname,
+    useRouter,
 } from 'next/navigation';
 
+import ChatbotWidget from '@/component/ChatbotWidget';
 import { cn } from '@/lib/utils';
 import AuthService from '@/service/authService';
 
@@ -36,6 +36,8 @@ const navigation = [
     { name: 'Thanh toán', href: '/user/payments', icon: CreditCard },
     { name: 'Hồ sơ', href: '/user/profile', icon: User },
 ];
+
+
 
 // Lấy số lượng mặt hàng trong giỏ hàng từ localStorage giống trang giỏ hàng
 const getCartCount = () => {
@@ -56,6 +58,11 @@ export default function UserLayout({
     const user = AuthService.getCurrentUser();
     const router = useRouter();
 
+
+    const location = usePathname();
+
+    const hasDefault = location === '/user';
+
     // State cho số lượng mặt hàng trong giỏ
     const [cartCount, setCartCount] = useState(0);
 
@@ -75,8 +82,10 @@ export default function UserLayout({
         return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
+
     return (
         <div className="min-h-screen bg-gray-50 flex">
+            {!hasDefault && <ChatbotWidget />}
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div

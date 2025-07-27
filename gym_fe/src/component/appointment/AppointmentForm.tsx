@@ -84,6 +84,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Get the first schedule ID from the schedules array
+    const firstScheduleId = schedules.length > 0 ? (schedules[0].scheduleID || schedules[0].scheduleid) : '';
+
     // Format date and time as ISO strings for backend
     const appointmentData = {
       ...formData,

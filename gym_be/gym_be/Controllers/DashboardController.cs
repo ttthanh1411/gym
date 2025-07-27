@@ -26,8 +26,10 @@ namespace gym_be.Controllers
                 var startOfMonth = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
                 var startOfLastMonth = startOfMonth.AddMonths(-1);
 
-                // Total customers
-                var totalCustomers = await _context.Customers.CountAsync();
+                // Total customers (only regular users, type 1)
+                var totalCustomers = await _context.Customers
+                    .Where(c => c.Type == 1) // Only regular users, not admins or PTs
+                    .CountAsync();
 
                 // Get completed status ID (assuming it exists in status table)
                 var completedStatusId = await _context.Status
@@ -60,9 +62,9 @@ namespace gym_be.Controllers
                 // Active courses
                 var activeCourses = await _context.WorkoutCourses.CountAsync();
 
-                // Total enrolled students (assuming this is tracked somewhere)
+                // Total enrolled students (only regular users, type 1)
                 var enrolledStudents = await _context.Customers
-                    .Where(c => c.Status == 1) // Active customers
+                    .Where(c => c.Type == 1 && c.Status == 1) // Only active regular users
                     .CountAsync();
 
                 var result = new
