@@ -350,12 +350,11 @@ export default function UserDashboard() {
                 ))}
               </div>
             )}
-            {/* <button 
-              onClick={() => window.location.href = '/user/appointments'}
-              className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-            >
-              Xem tất cả cuộc hẹn →
-            </button> */}
+            {appointments.length > 3 && (<Link href="/user/my-appointment">
+              <button className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                Xem tất cả cuộc hẹn →
+              </button>
+            </Link>)}
           </div>
         </div>
       </div>

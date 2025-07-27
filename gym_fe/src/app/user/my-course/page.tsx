@@ -221,7 +221,7 @@ export default function SchedulePage() {
               </button>
             </div>
 
-            <select
+            {/* <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -230,7 +230,7 @@ export default function SchedulePage() {
               <option value="confirmed">Đã xác nhận</option>
               <option value="pending">Chờ xác nhận</option>
               <option value="cancelled">Đã hủy</option>
-            </select>
+            </select> */}
           </div>
         </div>
       </div>
