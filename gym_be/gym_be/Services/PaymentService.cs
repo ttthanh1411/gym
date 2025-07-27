@@ -7,7 +7,6 @@ using gym_be.Models.Entities;
 using gym_be.Services.Interfaces;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System;
 
 namespace gym_be.Services
 {
@@ -57,6 +56,7 @@ namespace gym_be.Services
             var service = new SessionService();
             Session session = service.Create(options);
 
+            // Already camelCase
             return new { url = session.Url };
         }
 
@@ -91,105 +91,130 @@ namespace gym_be.Services
                 _context.PaymentDetails.Add(detail);
             }
             await _context.SaveChangesAsync();
+            // Already camelCase
             return new { message = "Payment saved" };
         }
 
         public async Task<IEnumerable<object>> GetMyCoursesAsync(Guid customerId)
         {
-            var payments = await _context.Payments
+            // Lấy các paymentId đã thanh toán thành công của customer
+            var paidPaymentIds = _context.Payments
                 .Where(p => p.CustomerId == customerId && p.Status == true)
-                .ToListAsync();
+                .Select(p => p.PaymentId)
+                .ToList();
 
-            var paymentIds = payments.Select(p => p.PaymentId).ToList();
+            // Lấy các khoá học đã mua, kèm tên dịch vụ (servicename) và tên PT (ptname)
+            var courseList = (from pd in _context.PaymentDetails
+                              join c in _context.WorkoutCourses on pd.CourseId equals c.CourseId
+                              join s in _context.Services on c.ServiceId equals s.ServiceID into serviceJoin
+                              from s in serviceJoin.DefaultIfEmpty()
+                              join pt in _context.Customers on c.PersonalTrainerId equals pt.CustomerID into ptJoin
+                              from pt in ptJoin.DefaultIfEmpty()
+                              where pd.CustomerId == customerId && paidPaymentIds.Contains(pd.PaymentId)
+                              select new {
+                                  courseId = c.CourseId,
+                                  courseName = c.CourseName,
+                                  imageUrl = c.ImageUrl,
+                                  personalTrainerId = c.PersonalTrainerId,
+                                  durationWeek = c.DurationWeek,
+                                  description = c.Description,
+                                  price = c.Price,
+                                  serviceId = c.ServiceId,
+                                  serviceName = s != null ? s.ServiceName : null,
+                                  ptName = pt != null ? pt.Name : null,
+                                  schedules = c.Schedules
+                              }).ToList();
 
-            var courseDetails = await _context.PaymentDetails
-                .Where(pd => paymentIds.Contains(pd.PaymentId))
-                .Join(_context.WorkoutCourses,
-                    pd => pd.CourseId,
-                    wc => wc.CourseId,
-                    (pd, wc) => new
-                    {
-                        CourseId = wc.CourseId,
-                        CourseName = wc.CourseName,
-                        CourseDescription = wc.CourseDescription,
-                        Price = pd.Price,
-                        PaidAt = payments.FirstOrDefault(p => p.PaymentId == pd.PaymentId)?.PaidAt
-                    })
-                .ToListAsync();
-
-            return courseDetails.Select(cd => new
-            {
-                courseId = cd.CourseId,
-                courseName = cd.CourseName,
-                courseDescription = cd.CourseDescription,
-                price = cd.Price,
-                paidAt = cd.PaidAt
-            });
+            return courseList;
         }
 
         public async Task<IEnumerable<object>> GetMySchedulesAsync(Guid customerId)
         {
-            var appointments = await _context.Appointments
-                .Where(a => a.CustomerId == customerId)
-                .Join(_context.WorkoutCourses,
-                    a => a.CourseId,
-                    wc => wc.CourseId,
-                    (a, wc) => new
-                    {
-                        AppointmentId = a.AppointmentId,
-                        CourseName = wc.CourseName,
-                        AppointmentDate = a.AppointmentDate,
-                        AppointmentTime = a.AppointmentTime,
-                        Price = a.Price
-                    })
-                .ToListAsync();
+            // Lấy các paymentId đã thanh toán thành công của customer
+            var paidPaymentIds = _context.Payments
+                .Where(p => p.CustomerId == customerId && p.Status == true)
+                .Select(p => p.PaymentId)
+                .ToList();
 
-            return appointments.Select(a => new
+            // Lấy các khoá học đã mua
+            var courseIds = _context.PaymentDetails
+                .Where(pd => pd.CustomerId == customerId && paidPaymentIds.Contains(pd.PaymentId))
+                .Select(pd => pd.CourseId)
+                .Distinct()
+                .ToList();
+
+            // Lấy tất cả WorkoutCourse liên quan
+            var courses = _context.WorkoutCourses
+                .Where(c => courseIds.Contains(c.CourseId))
+                .AsEnumerable()
+                .ToList();
+
+            // Tạo ánh xạ scheduleId -> (PersonalTrainerId, CourseId)
+            var scheduleCourseMap = new Dictionary<Guid, (Guid PersonalTrainerId, Guid CourseId)>();
+            foreach (var course in courses)
             {
-                appointmentId = a.AppointmentId,
-                courseName = a.CourseName,
-                appointmentDate = a.AppointmentDate,
-                appointmentTime = a.AppointmentTime,
-                price = a.Price
-            });
+                foreach (var scheduleId in course.Schedules)
+                {
+                    scheduleCourseMap[scheduleId] = (course.PersonalTrainerId, course.CourseId);
+                }
+            }
+
+            // Lấy tất cả scheduleId
+            var scheduleIds = scheduleCourseMap.Keys.ToList();
+
+            // Lấy thông tin chi tiết các schedule
+            var schedules = _context.Schedules
+                .Where(s => scheduleIds.Contains(s.ScheduleID))
+                .ToList();
+
+            // Lấy danh sách giáo viên
+            var trainerIds = scheduleCourseMap.Values.Select(x => x.PersonalTrainerId).Distinct().ToList();
+            var trainers = _context.Customers
+                .Where(c => trainerIds.Contains(c.CustomerID))
+                .ToDictionary(c => c.CustomerID, c => c.Name);
+
+            // Trả về schedule kèm tên giáo viên và tên khoá học
+            var result = schedules.Select(s => new {
+                scheduleId = s.ScheduleID,
+                dayOfWeek = s.DayOfWeek,
+                maxParticipants = s.MaxParticipants,
+                startTime = s.StartTime,
+                endTime = s.EndTime,
+                courseId = scheduleCourseMap[s.ScheduleID].CourseId,
+                courseName = courses.FirstOrDefault(c => c.CourseId == scheduleCourseMap[s.ScheduleID].CourseId)?.CourseName ?? "Không rõ",
+                teacherName = trainers.ContainsKey(scheduleCourseMap[s.ScheduleID].PersonalTrainerId)
+                    ? trainers[scheduleCourseMap[s.ScheduleID].PersonalTrainerId]
+                    : "Không rõ"
+            }).ToList();
+
+            return result;
         }
 
         public async Task<IEnumerable<object>> GetPaymentHistoryAsync(Guid customerId)
         {
-            var payments = await _context.Payments
-                .Where(p => p.CustomerId == customerId)
-                .OrderByDescending(p => p.PaidAt)
-                .ToListAsync();
-
-            var paymentDetails = await _context.PaymentDetails
-                .Where(pd => payments.Select(p => p.PaymentId).Contains(pd.PaymentId))
-                .Join(_context.WorkoutCourses,
-                    pd => pd.CourseId,
-                    wc => wc.CourseId,
-                    (pd, wc) => new
-                    {
-                        PaymentId = pd.PaymentId,
-                        CourseName = wc.CourseName,
-                        Price = pd.Price
-                    })
-                .ToListAsync();
-
-            var result = payments.Select(p => new
-            {
-                paymentId = p.PaymentId,
-                amount = p.Amount,
-                paidAt = p.PaidAt,
-                method = p.Method ? "Card" : "Cash",
-                status = p.Status ? "Completed" : "Pending",
-                courses = paymentDetails
-                    .Where(pd => pd.PaymentId == p.PaymentId)
-                    .Select(pd => new
-                    {
-                        courseName = pd.CourseName,
-                        price = pd.Price
-                    })
-            });
-
+            var paymentHistory = (from p in _context.Payments
+                                 join pd in _context.PaymentDetails on p.PaymentId equals pd.PaymentId
+                                 join c in _context.WorkoutCourses on pd.CourseId equals c.CourseId
+                                 join pt in _context.Customers on c.PersonalTrainerId equals pt.CustomerID into ptJoin
+                                 from pt in ptJoin.DefaultIfEmpty()
+                                 where p.CustomerId == customerId
+                                 orderby p.PaidAt descending
+                                 select new
+                                 {
+                                     paymentId = p.PaymentId.ToString(),
+                                     courseId = c.CourseId.ToString(),
+                                     courseName = c.CourseName,
+                                     instructor = pt != null ? pt.Name : "Không rõ",
+                                     amount = pd.Price,
+                                     originalAmount = c.Price,
+                                     status = p.Status == true ? "completed" : "failed",
+                                     date = p.PaidAt.HasValue ? p.PaidAt.Value.ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"),
+                                     paymentMethod = p.Method == true ? "Thẻ tín dụng" : "Chuyển khoản",
+                                     transactionId = p.PaymentId.ToString(), // Sử dụng paymentId thay cho mã giao dịch
+                                    //  discount = c.Price - pd.Price,
+                                     paidAt = p.PaidAt
+                                 }).ToList();
+            var result = paymentHistory.Cast<object>().ToList();
             return result;
         }
     }
