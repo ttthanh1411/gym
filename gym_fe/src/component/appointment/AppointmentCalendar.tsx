@@ -39,7 +39,8 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   };
 
   const getAppointmentsForDate = (date: string) => {
-    return appointments.filter(apt => apt.appointmentdate === date);
+    console.log(appointments, date);
+    return appointments.filter(apt => apt.appointmentdate.split('T')[0] === date);
   };
 
   const formatDate = (day: number) => {
@@ -98,24 +99,31 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
               const dayAppointments = getAppointmentsForDate(dateString);
               const isToday = dateString === new Date().toISOString().split('T')[0];
               const isSelected = selectedDate === dateString;
+              const hasAppointments = dayAppointments.length > 0;
 
               return (
                 <div
                   key={day}
-                  className={`p-2 h-20 border rounded-lg cursor-pointer transition-colors ${
+                  className={`p-2 h-20 border rounded-lg cursor-pointer transition-colors relative ${
                     isSelected
                       ? 'bg-blue-100 border-blue-300'
                       : isToday
                       ? 'bg-yellow-50 border-yellow-300'
+                      : hasAppointments
+                      ? 'bg-green-50 border-green-300' // highlight days with appointments
                       : 'border-gray-200 hover:bg-gray-50'
                   }`}
                   onClick={() => setSelectedDate(dateString)}
+                  title={hasAppointments ? `${dayAppointments.length} cuộc hẹn` : ''}
                 >
                   <div className="flex flex-col h-full">
                     <span className={`text-sm font-medium ${
-                      isToday ? 'text-yellow-800' : 'text-gray-900'
+                      isToday ? 'text-yellow-800' : hasAppointments ? 'text-green-700' : 'text-gray-900'
                     }`}>
                       {day}
+                      {hasAppointments && (
+                        <span className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full"></span>
+                      )}
                     </span>
                     <div className="flex-1 mt-1">
                       {dayAppointments.slice(0, 2).map((apt, index) => (
@@ -152,11 +160,14 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
             selectedDateAppointments.length > 0 ? (
               <div className="space-y-4">
                 {selectedDateAppointments.map((appointment) => (
-                  <div key={appointment.appointmentid} className="border border-gray-200 rounded-lg p-4">
+                  <div
+                    key={appointment.appointmentid}
+                    className="border-2 border-blue-500 bg-blue-50 rounded-lg p-4 shadow-md transition-all"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-medium text-gray-900">{appointment.appointmentname}</h4>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <h4 className="font-medium text-blue-900">{appointment.appointmentname}</h4>
+                        <p className="text-sm text-blue-700 mt-1">
                           {appointment.appointmenttime}
                         </p>
                         <p className="text-sm text-green-600 font-medium mt-1">

@@ -67,7 +67,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         />
       )}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-[#1A1363] to-[#332F42]">
+        <div className="flex items-center justify-between h-16 px-6 bg-blue-600">
           <h1 className="text-xl font-bold text-white">
             {isPTUser ? 'PT Panel' : 'Admin Panel'}
           </h1>

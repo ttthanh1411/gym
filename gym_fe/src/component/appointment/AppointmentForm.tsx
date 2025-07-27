@@ -1,22 +1,13 @@
-import React, {
-  useEffect,
-  useState,
-} from 'react';
+import React, { useEffect, useState } from "react";
 
-import {
-  Calendar,
-  Clock,
-  FileText,
-  User,
-  X,
-} from 'lucide-react';
+import { Calendar, Clock, FileText, User, X } from "lucide-react";
 
 import {
   fetchCustomers,
   fetchSchedules,
   fetchServices,
   fetchStatuses,
-} from '../../service/appointment';
+} from "../../service/appointment";
 
 interface AppointmentFormProps {
   appointment?: any;
@@ -26,22 +17,21 @@ interface AppointmentFormProps {
 
 function formatTime(ts: string) {
   // Assumes ts is like "2024-07-01T08:00:00"
-  return ts ? ts.split('T')[1]?.slice(0, 5) : '';
+  return ts ? ts.split("T")[1]?.slice(0, 5) : "";
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
   appointment,
   onSave,
-  onCancel
+  onCancel,
 }) => {
   const [formData, setFormData] = useState({
-    appointmentname: '',
-    appointmentdate: '',
-    appointmenttime: '',
-    customerid: '',
-    serviceid: '',
-    scheduleid: '',
-    statusid: ''
+    appointmentname: "",
+    appointmentdate: "",
+    appointmenttime: "",
+    customerid: "",
+    serviceid: "",
+    statusid: "",
   });
   const [schedules, setSchedules] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
@@ -52,17 +42,25 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     if (appointment) {
       setFormData({
         appointmentname: appointment.appointmentname,
-        appointmentdate: appointment.appointmentdate,
-        appointmenttime: appointment.appointmenttime,
+        appointmentdate: appointment.appointmentdate
+          ? (() => {
+              const d = new Date(appointment.appointmentdate);
+              return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+                .toISOString()
+                .split('T')[0];
+            })()
+          : "",
+        appointmenttime: appointment.appointmenttime
+          ? appointment.appointmenttime.slice(0, 5)
+          : "",
         customerid: appointment.customerid,
         serviceid: appointment.serviceid,
-        scheduleid: appointment.scheduleid,
-        statusid: appointment.statusid
+        statusid: appointment.statusid,
       });
     }
-    console.log('Fetching schedules...');
-    fetchSchedules().then(data => {
-      console.log('Fetched schedules:', data);
+    console.log("Fetching schedules...");
+    fetchSchedules().then((data) => {
+      console.log("Fetched schedules:", data);
       setSchedules(data);
     });
     fetchStatuses().then(setStatuses);
@@ -70,21 +68,36 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     fetchServices().then(setServices);
   }, [appointment]);
 
+  // Helper to normalize time to HH:mm:ss
+  function normalizeTime(time: string) {
+    if (!time) return "00:00:00";
+    // If already HH:mm:ss, return as is
+    if (/^\d{2}:\d{2}:\d{2}$/.test(time)) return time;
+    // If HH:mm, append :00
+    if (/^\d{2}:\d{2}$/.test(time)) return time + ':00';
+    // Otherwise, try to extract first 2 parts
+    const parts = time.split(":");
+    if (parts.length >= 2) return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:00`;
+    return "00:00:00";
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Format date and time as ISO strings for backend
     const appointmentData = {
       ...formData,
-      appointmentdate: formData.appointmentdate + 'T00:00:00',
-      appointmenttime: formData.appointmenttime + ':00', // send as HH:mm:ss
+      appointmentdate: formData.appointmentdate + "T00:00:00",
+      appointmenttime: normalizeTime(formData.appointmenttime), // always HH:mm:ss
       appointmentid: appointment?.appointmentid,
-      scheduleid: formData.scheduleid || '',
-      statusid: formData.statusid || ''
+      statusid: formData.statusid || "",
     };
 
     // Debug log to verify payload
-    console.log('Submitting appointment payload:', JSON.stringify(appointmentData, null, 2));
+    console.log(
+      "Submitting appointment payload:",
+      JSON.stringify(appointmentData, null, 2)
+    );
 
     onSave(appointmentData);
   };
@@ -92,16 +105,19 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const handleServiceChange = (serviceid: string) => {
     setFormData({
       ...formData,
-      serviceid
+      serviceid,
     });
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.25)" }}
+    >
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            {appointment ? 'Chỉnh Sửa Cuộc Hẹn' : 'Tạo Cuộc Hẹn Mới'}
+            {appointment ? "Chỉnh Sửa Cuộc Hẹn" : "Tạo Cuộc Hẹn Mới"}
           </h2>
           <button
             onClick={onCancel}
@@ -121,7 +137,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             <input
               type="text"
               value={formData.appointmentname}
-              onChange={(e) => setFormData({ ...formData, appointmentname: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, appointmentname: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Nhập tên cuộc hẹn"
               required
@@ -136,16 +154,21 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             </label>
             <select
               value={formData.customerid}
-              onChange={(e) => setFormData({ ...formData, customerid: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, customerid: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
               <option value="">Chọn khách hàng</option>
               {customers
-                .filter((customer) => !!customer.customerid || !!customer.customerID)
+                .filter((customer) => customer.type === 1)
                 .map((customer) => (
-                  <option key={customer.customerid || customer.customerID} value={customer.customerid || customer.customerID}>
-                    {(customer.name || customer.customername)} - {customer.email}
+                  <option
+                    key={customer.customerid || customer.customerID}
+                    value={customer.customerid || customer.customerID}
+                  >
+                    {customer.name || customer.customername} - {customer.email}
                   </option>
                 ))}
             </select>
@@ -166,9 +189,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               {services
                 .filter((service) => !!service.serviceid || !!service.serviceID)
                 .map((service) => (
-                  <option key={service.serviceid || service.serviceID} value={service.serviceid || service.serviceID}>
-                    {(service.servicename || service.serviceName)}
-                    {service.serviceprice && !isNaN(parseInt(service.serviceprice)) ? ` - ${parseInt(service.serviceprice).toLocaleString('vi-VN')}đ` : ''}
+                  <option
+                    key={service.serviceid || service.serviceID}
+                    value={service.serviceid || service.serviceID}
+                  >
+                    {service.servicename || service.serviceName}
+                    {service.serviceprice &&
+                    !isNaN(parseInt(service.serviceprice))
+                      ? ` - ${parseInt(service.serviceprice).toLocaleString(
+                          "vi-VN"
+                        )}đ`
+                      : ""}
                   </option>
                 ))}
             </select>
@@ -184,7 +215,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               <input
                 type="date"
                 value={formData.appointmentdate}
-                onChange={(e) => setFormData({ ...formData, appointmentdate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, appointmentdate: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -199,7 +232,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               <input
                 type="time"
                 value={formData.appointmenttime}
-                onChange={(e) => setFormData({ ...formData, appointmenttime: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, appointmenttime: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -208,28 +243,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
           {/* Remove the Price input field from the form UI */}
 
-          {/* Schedule */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lịch Hẹn
-            </label>
-            <select
-              value={formData.scheduleid}
-              onChange={(e) => setFormData({ ...formData, scheduleid: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Chọn lịch hẹn</option>
-              {schedules
-                .filter((s) => !!s.scheduleID || !!s.scheduleid)
-                .map((s) => (
-                  <option key={s.scheduleID || s.scheduleid} value={s.scheduleID || s.scheduleid}>
-                    {(s.dayOfWeek || s.dayofweek)} {formatTime(s.startTime || s.starttime)}-{formatTime(s.endTime || s.endtime)}
-                  </option>
-                ))}
-            </select>
-          </div>
-
           {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -237,7 +250,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             </label>
             <select
               value={formData.statusid}
-              onChange={(e) => setFormData({ ...formData, statusid: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, statusid: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
@@ -263,7 +278,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               type="submit"
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {appointment ? 'Cập Nhật' : 'Tạo Cuộc Hẹn'}
+              {appointment ? "Cập Nhật" : "Tạo Cuộc Hẹn"}
             </button>
           </div>
         </form>

@@ -14,6 +14,7 @@ import {
   fetchAppointments,
   fetchCustomers,
   fetchServices,
+  updateAppointment,
 } from '../../../service/appointment';
 
 function Appointment() {
@@ -41,13 +42,22 @@ function Appointment() {
     }
   };
 
-  const handleUpdateAppointment = (appointmentData: any) => {
+  const handleUpdateAppointment = async (appointmentData: any) => {
+  try {
+    // Call backend API to update appointment
+    const updatedAppointment = await updateAppointment(
+      appointmentData.appointmentid,
+      appointmentData
+    );
     setAppointments(appointments.map(apt =>
-      apt.appointmentid === appointmentData.appointmentid ? appointmentData : apt
+      apt.appointmentid === updatedAppointment.appointmentid ? updatedAppointment : apt
     ));
     setShowForm(false);
     setSelectedAppointment(null);
-  };
+  } catch (error) {
+    alert('Failed to update appointment');
+  }
+};
 
   const handleDeleteAppointment = (appointmentId: any) => {
     setAppointments(appointments.filter(apt => apt.appointmentid !== appointmentId));

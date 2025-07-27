@@ -77,6 +77,10 @@ export async function createAppointment(appointment: any) {
   return AppointmentService.create(appointment);
 }
 
+export async function updateAppointment(appointmentId: string, appointmentData: any) {
+  return AppointmentService.update(appointmentId, appointmentData);
+}
+
 export async function fetchSchedules() {
   const res = await fetch('http://localhost:5231/api/schedule');
   if (!res.ok) throw new Error('Failed to fetch schedules');
