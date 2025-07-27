@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { validatePassword } from '../../../utils/passwordValidation';
 import { Users, Plus, Search, Filter, MoreVertical, Edit2, Trash2, Eye, X, User, Phone, MapPin, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import customerService from '../../../service/customerService';
 import { Customer } from '../../../type/customer';
@@ -41,6 +42,7 @@ const UserManagement: React.FC = () => {
     password: '',
     status: 1,
   });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const isReadonly = modalMode === 'view';
   const fetchUsers = async () => {
     try {
@@ -63,6 +65,13 @@ const UserManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate password only when adding user or when password is being changed
+    if ((modalMode === 'add' || (modalMode === 'edit' && formData.password)) && validatePassword(formData.password || '')) {
+      setPasswordError(validatePassword(formData.password || ''));
+      showNotification('error', validatePassword(formData.password || '') || 'Mật khẩu không hợp lệ');
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       if (modalMode === 'edit' && selectedUser) {
@@ -115,6 +124,9 @@ const UserManagement: React.FC = () => {
       ...prev,
       [name]: value
     }));
+    if (name === 'password') {
+      setPasswordError(validatePassword(value));
+    }
   };
 
   const handleCloseModal = () => {
@@ -519,6 +531,9 @@ const UserManagement: React.FC = () => {
                           className=" text-black w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-300 transition-all duration-200 bg-gray-50 focus:bg-white"
                           placeholder="Enter password"
                         />
+                        {passwordError && (
+                          <div className="text-red-500 text-xs mt-1">{passwordError}</div>
+                        )}
                       </div>
                     </div>
 
