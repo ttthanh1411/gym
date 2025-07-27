@@ -3,6 +3,7 @@ using Stripe;
 using Stripe.Checkout;
 using Newtonsoft.Json;
 using gym_be.Models;
+using Microsoft.EntityFrameworkCore; // Added for ToListAsync support
 using gym_be.Models.Entities;
 using gym_be.Services.Interfaces;
 using System.Globalization;
@@ -111,9 +112,9 @@ namespace gym_be.Services
                     {
                         CourseId = wc.CourseId,
                         CourseName = wc.CourseName,
-                        CourseDescription = wc.CourseDescription,
+                        CourseDescription = wc.Description,
                         Price = pd.Price,
-                        PaidAt = payments.FirstOrDefault(p => p.PaymentId == pd.PaymentId)?.PaidAt
+                        PaidAt = payments.Where(p => p.PaymentId == pd.PaymentId).Select(p => p.PaidAt).FirstOrDefault()
                     })
                 .ToListAsync();
 
@@ -130,17 +131,17 @@ namespace gym_be.Services
         public async Task<IEnumerable<object>> GetMySchedulesAsync(Guid customerId)
         {
             var appointments = await _context.Appointments
-                .Where(a => a.CustomerId == customerId)
+                .Where(a => a.customerid == customerId)
                 .Join(_context.WorkoutCourses,
-                    a => a.CourseId,
-                    wc => wc.CourseId,
+                    a => a.serviceid,
+                    wc => wc.ServiceId,
                     (a, wc) => new
                     {
-                        AppointmentId = a.AppointmentId,
+                        AppointmentId = a.appointmentid,
                         CourseName = wc.CourseName,
-                        AppointmentDate = a.AppointmentDate,
-                        AppointmentTime = a.AppointmentTime,
-                        Price = a.Price
+                        AppointmentDate = a.appointmentdate,
+                        AppointmentTime = a.appointmenttime,
+                        Price = a.price
                     })
                 .ToListAsync();
 
@@ -179,8 +180,8 @@ namespace gym_be.Services
                 paymentId = p.PaymentId,
                 amount = p.Amount,
                 paidAt = p.PaidAt,
-                method = p.Method ? "Card" : "Cash",
-                status = p.Status ? "Completed" : "Pending",
+                method = (p.Method ?? false) ? "Card" : "Cash",
+                status = (p.Status ?? false) ? "Completed" : "Pending",
                 courses = paymentDetails
                     .Where(pd => pd.PaymentId == p.PaymentId)
                     .Select(pd => new
