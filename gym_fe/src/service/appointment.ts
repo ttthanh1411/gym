@@ -110,3 +110,12 @@ export async function fetchAppointments() {
   if (!res.ok) throw new Error('Failed to fetch appointments');
   return await res.json();
 }
+
+export async function deleteAppointment(appointmentId: string) {
+  const res = await fetch(`http://localhost:5231/api/appointment/${appointmentId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete appointment');
+  // No need to parse JSON for 204 No Content
+  return true;
+}

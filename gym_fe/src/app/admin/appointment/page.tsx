@@ -15,6 +15,7 @@ import {
   fetchCustomers,
   fetchServices,
   updateAppointment,
+  deleteAppointment,
 } from '../../../service/appointment';
 
 function Appointment() {
@@ -59,9 +60,15 @@ function Appointment() {
   }
 };
 
-  const handleDeleteAppointment = (appointmentId: any) => {
-    setAppointments(appointments.filter(apt => apt.appointmentid !== appointmentId));
+  const handleDeleteAppointment = async (appointmentId: any) => {
+    try {
+      await deleteAppointment(appointmentId);
+      setAppointments(appointments.filter(apt => apt.appointmentid !== appointmentId));
+    } catch (error) {
+      alert('Failed to delete appointment');
+    }
   };
+
 
   const handleEditAppointment = (appointment: any) => {
     setSelectedAppointment(appointment);
