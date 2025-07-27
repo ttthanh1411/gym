@@ -32,6 +32,7 @@ const navigation = [
     { name: 'Trang chủ', href: '/user', icon: Home },
     { name: 'Mua khóa tập', href: '/user/buy', icon: ShoppingCart },
     { name: 'Khoá tập của tôi', href: '/user/my-course', icon: Calendar },
+    { name: 'Cuộc hẹn của tôi', href: '/user/my-appointment', icon: Calendar },
     { name: 'Thanh toán', href: '/user/payments', icon: CreditCard },
     { name: 'Hồ sơ', href: '/user/profile', icon: User },
 ];

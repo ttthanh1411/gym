@@ -77,6 +77,10 @@ export async function createAppointment(appointment: any) {
   return AppointmentService.create(appointment);
 }
 
+export async function updateAppointment(appointmentId: string, appointmentData: any) {
+  return AppointmentService.update(appointmentId, appointmentData);
+}
+
 export async function fetchSchedules() {
   const res = await fetch('http://localhost:5231/api/schedule');
   if (!res.ok) throw new Error('Failed to fetch schedules');
@@ -105,4 +109,13 @@ export async function fetchAppointments() {
   const res = await fetch('http://localhost:5231/api/appointment');
   if (!res.ok) throw new Error('Failed to fetch appointments');
   return await res.json();
+}
+
+export async function deleteAppointment(appointmentId: string) {
+  const res = await fetch(`http://localhost:5231/api/appointment/${appointmentId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete appointment');
+  // No need to parse JSON for 204 No Content
+  return true;
 }

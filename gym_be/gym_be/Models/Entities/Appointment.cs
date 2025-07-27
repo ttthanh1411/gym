@@ -25,15 +25,10 @@ namespace gym_be.Models.Entities
         [Column("customerid")]
         public Guid customerid { get; set; }
 
-        [Column("scheduleid")]
-        public Guid scheduleid { get; set; }
-
         [Column("serviceid")]
         public Guid serviceid { get; set; }
 
         public Customer Customer { get; set; }
-
-        public Schedule Schedule { get; set; }
 
         public Service Service { get; set; }
 

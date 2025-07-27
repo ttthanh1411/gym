@@ -281,5 +281,38 @@ namespace gym_be.Controllers
                 return StatusCode(500, new { message = "Lỗi khi lấy dữ liệu hoạt động gần đây", error = ex.Message });
             }
         }
+        [HttpGet("user-stats/{customerId}")]
+        public async Task<IActionResult> GetUserStats(Guid customerId)
+        {
+            try
+            {
+                // Only count successful payments
+                var paidPaymentIds = await _context.Payments
+                    .Where(p => p.CustomerId == customerId && p.Status == true)
+                    .Select(p => p.PaymentId)
+                    .ToListAsync();
+
+                // Total packages (distinct courses purchased)
+                var totalPackages = await _context.PaymentDetails
+                    .Where(pd => pd.CustomerId == customerId && paidPaymentIds.Contains(pd.PaymentId))
+                    .Select(pd => pd.CourseId)
+                    .Distinct()
+                    .CountAsync();
+
+                // Total amount spent
+                var totalSpent = await _context.Payments
+                    .Where(p => p.CustomerId == customerId && p.Status == true)
+                    .SumAsync(p => (decimal?)p.Amount) ?? 0;
+
+                return Ok(new {
+                    totalPackages,
+                    totalSpent
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi lấy thống kê người dùng", error = ex.Message });
+            }
+        }
     }
 } 

@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 using gym_be.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using gym_be.Models.Entities;
@@ -43,7 +43,6 @@ namespace gym_be.Controllers
             var appointments = await _context.Appointments
                 .Where(a => a.customerid == customerId)
                 .Include(a => a.Service)
-                .Include(a => a.Schedule)
                 .Include(a => a.Customer)
                 .Select(a => new
                 {
@@ -53,12 +52,7 @@ namespace gym_be.Controllers
                     appointmentTime = a.appointmenttime,
                     price = a.price,
                     serviceName = a.Service != null ? a.Service.ServiceName : "Không rõ",
-                    scheduleInfo = a.Schedule != null ? new
-                    {
-                        dayOfWeek = a.Schedule.DayOfWeek,
-                        startTime = a.Schedule.StartTime,
-                        endTime = a.Schedule.EndTime
-                    } : null,
+                    
                     status = a.statusid
                 })
                 .ToListAsync();

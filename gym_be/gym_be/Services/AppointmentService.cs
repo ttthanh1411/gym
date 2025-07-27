@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 using gym_be.Models;
 using gym_be.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +32,6 @@ namespace gym_be.Services
                 price = appointment.price,
                 customerid = appointment.customerid,
                 statusid = appointment.statusid,
-                scheduleid = appointment.scheduleid,
                 serviceid = appointment.serviceid
             };
         }
@@ -51,7 +50,6 @@ namespace gym_be.Services
                     price = a.price,
                     customerid = a.customerid,
                     statusid = a.statusid,
-                    scheduleid = a.scheduleid,
                     serviceid = a.serviceid
                 })
                 .ToListAsync();
@@ -69,7 +67,6 @@ namespace gym_be.Services
                     price = a.price,
                     customerid = a.customerid,
                     statusid = a.statusid,
-                    scheduleid = a.scheduleid,
                     serviceid = a.serviceid
                 })
                 .ToListAsync();
@@ -88,7 +85,6 @@ namespace gym_be.Services
                     price = a.price,
                     customerid = a.customerid,
                     statusid = a.statusid,
-                    scheduleid = a.scheduleid,
                     serviceid = a.serviceid
                 })
                 .ToListAsync();
@@ -108,7 +104,6 @@ namespace gym_be.Services
                 price = appointmentDto.price,
                 customerid = appointmentDto.customerid,
                 statusid = appointmentDto.statusid,
-                scheduleid = appointmentDto.scheduleid,
                 serviceid = appointmentDto.serviceid
             };
 
@@ -124,7 +119,6 @@ namespace gym_be.Services
                 price = appointment.price,
                 customerid = appointment.customerid,
                 statusid = appointment.statusid,
-                scheduleid = appointment.scheduleid,
                 serviceid = appointment.serviceid
             };
         }
@@ -138,12 +132,11 @@ namespace gym_be.Services
                 return null;
 
             appointment.appointmentname = appointmentDto.appointmentname;
-            appointment.appointmentdate = appointmentDto.appointmentdate;
+            appointment.appointmentdate = DateTime.SpecifyKind(appointmentDto.appointmentdate, DateTimeKind.Utc);
             appointment.appointmenttime = appointmentDto.appointmenttime;
             appointment.price = appointmentDto.price;
             appointment.customerid = appointmentDto.customerid;
             appointment.statusid = appointmentDto.statusid;
-            appointment.scheduleid = appointmentDto.scheduleid;
             appointment.serviceid = appointmentDto.serviceid;
 
             await _context.SaveChangesAsync();

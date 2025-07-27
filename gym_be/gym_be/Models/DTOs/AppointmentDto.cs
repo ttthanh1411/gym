@@ -18,8 +18,6 @@ namespace gym_be.Models.DTOs
         public Guid customerid { get; set; }
         [JsonPropertyName("statusid")]
         public Guid statusid { get; set; }
-        [JsonPropertyName("scheduleid")]
-        public Guid scheduleid { get; set; }
         [JsonPropertyName("serviceid")]
         public Guid serviceid { get; set; }
     }

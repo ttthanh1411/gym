@@ -27,37 +27,6 @@ import config from "./config";
 import MessageParser from "./MessageParser";
 import Link from "next/link";
 
-const stats = [
-  {
-    name: "Khóa học đã mua",
-    value: "12",
-    change: "+2 tháng này",
-    changeType: "increase",
-    icon: Trophy,
-  },
-  {
-    name: "Buổi tập hoàn thành",
-    value: "48",
-    change: "+12 tuần này",
-    changeType: "increase",
-    icon: Target,
-  },
-  {
-    name: "Calories đã đốt",
-    value: "2,840",
-    change: "+340 hôm nay",
-    changeType: "increase",
-    icon: Flame,
-  },
-  {
-    name: "Thời gian tập",
-    value: "24.5h",
-    change: "Tháng này",
-    changeType: "neutral",
-    icon: Clock,
-  },
-];
-
 const recentAchievements = [
   {
     id: 1,
@@ -79,6 +48,25 @@ export default function UserDashboard() {
   const user = AuthService.getCurrentUser();
   const [showChatbot, setShowChatbot] = React.useState(false);
 
+  const [stats, setStats] = useState([
+    {
+      name: "Khóa học đã mua",
+      value: "Đang tải...",
+      change: "",
+      changeType: "neutral",
+      icon: Trophy,
+    },
+    {
+      name: "Tổng tiền đã chi",
+      value: "Đang tải...",
+      change: "",
+      changeType: "neutral",
+      icon: Award,
+    },
+  ]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  
   // State for schedules
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(true);
@@ -91,30 +79,51 @@ export default function UserDashboard() {
     const user = AuthService.getCurrentUser();
     if (!user) return;
     const customerId = user.userId || user.customerID;
-    
+
+    // Fetch user stats
+    setStatsLoading(true);
+    setStatsError(null);
+    PaymentService.getUserStats(customerId)
+      .then((data) => {
+        setStats((prev) => [
+          {
+            ...prev[0],
+            value: data.totalPackages?.toLocaleString('vi-VN') ?? "0",
+            change: prev[0].change,
+            changeType: "increase",
+          },
+          {
+            ...prev[1],
+            value: data.totalSpent !== undefined ? data.totalSpent.toLocaleString('vi-VN') + '₫' : "0₫",
+            change: prev[1].change,
+            changeType: "increase",
+          },
+          ...prev.slice(2)
+        ]);
+        setStatsLoading(false);
+      })
+      .catch((error) => {
+        setStats((prev) => [
+          { ...prev[0], value: "Lỗi" },
+          { ...prev[1], value: "Lỗi" },
+          ...prev.slice(2)
+        ]);
+        setStatsError('Không thể tải thống kê người dùng');
+        setStatsLoading(false);
+      });
+
     // Fetch schedules
     setLoadingSchedules(true);
     PaymentService.getMySchedules(customerId)
       .then((data) => {
-        console.log(data);
         setSchedules(data);
         setLoadingSchedules(false);
       })
       .catch((error) => {
-        console.error('Failed to get schedules:', error);
         setLoadingSchedules(false);
-      });
-
-    // Fetch appointments
-    setLoadingAppointments(true);
-    AppointmentService.getMyAppointments(customerId)
-      .then((data) => {
-        console.log('Appointments:', data);
-        setAppointments(data);
         setLoadingAppointments(false);
       })
       .catch((error) => {
-        console.error('Failed to get appointments:', error);
         setLoadingAppointments(false);
       });
   }, []);
@@ -350,12 +359,11 @@ export default function UserDashboard() {
                 ))}
               </div>
             )}
-            {/* <button 
-              onClick={() => window.location.href = '/user/appointments'}
-              className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-            >
-              Xem tất cả cuộc hẹn →
-            </button> */}
+            <Link href="/user/my-appointment">
+              <button className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                Xem tất cả cuộc hẹn →
+              </button>
+            </Link>
           </div>
         </div>
       </div>
