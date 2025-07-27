@@ -24,6 +24,7 @@ import {
     useRouter,
 } from 'next/navigation';
 
+import ChatbotWidget from '@/component/ChatbotWidget';
 import { cn } from '@/lib/utils';
 import AuthService from '@/service/authService';
 
@@ -83,6 +84,7 @@ export default function UserLayout({
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
+            {!hasDefault && <ChatbotWidget />}
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
