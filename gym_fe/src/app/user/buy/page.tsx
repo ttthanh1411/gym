@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from 'react';
 
 import {
   Check,
@@ -11,15 +10,15 @@ import {
   Plus,
   Search,
   ShoppingCart,
-  Star,
   Users,
   Zap,
-} from "lucide-react";
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import { useUser } from "../../../context/UserContext";
-import { fetchAllServices } from "../../../service/serviceService";
-import { fetchWorkoutCourses } from "../../../service/workOutCourse";
-import { Service } from "../../../type/service";
+import { useUser } from '../../../context/UserContext';
+import { fetchAllServices } from '../../../service/serviceService';
+import { fetchWorkoutCourses } from '../../../service/workOutCourse';
+import { Service } from '../../../type/service';
 
 // Toast helper
 function showToast(message: string) {
@@ -169,6 +168,7 @@ export default function BuyCoursePage() {
     router.push("/user/cart");
   };
 
+
   return (
     <div className="space-y-6 max-w-full">
       {/* Header */}
@@ -216,11 +216,10 @@ export default function BuyCoursePage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === category
-                  ? "bg-emerald-100 text-emerald-700 border-2 border-emerald-200"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-2 border-transparent"
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
+                ? "bg-emerald-100 text-emerald-700 border-2 border-emerald-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-2 border-transparent"
+                }`}
             >
               {category}
             </button>
@@ -274,7 +273,7 @@ export default function BuyCoursePage() {
                       {course.level || "Cơ bản"}
                     </span>
                     <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+
                       <span className="text-sm font-medium text-gray-700 ml-1">
                         {course.rating || ""}
                       </span>
