@@ -43,7 +43,8 @@ namespace gym_be.Controllers
                 Type = 1, // 1 = user, 0 = admin
                 Status = 1,
                 PhoneNumber = $"09{new Random().Next(10000000, 99999999)}",
-                Address = ""
+                Address = "",
+                Gender = dto.Gender
             };
 
             await _customerService.CreateAsync(customer);
@@ -70,6 +71,7 @@ namespace gym_be.Controllers
                 type = user.Type, // 0 = admin, 1 = user, 2 = pt
                 height = user.Height,
                 weight = user.Weight,
+                gender = user.Gender    
             });
         }
     }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using gym_be.Models;
 using gym_be.Services;
 using gym_be.Models.Entities;
@@ -87,6 +87,7 @@ namespace gym_be.Controllers
             if (dto.Status.HasValue) existing.Status = dto.Status.Value;
             existing.Height = dto.Height;
             existing.Weight = dto.Weight;
+            existing.Gender = dto.Gender;
             await _service.UpdateAsync(id, existing);
             return Ok(existing);
         }

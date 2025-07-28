@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -42,6 +42,10 @@ namespace gym_be.Models.Entities
 
         [Column("status")]
         public int Status { get; set; }
+
+        [Column("gender")]
+        [MaxLength(10)]
+        public string? Gender { get; set; }
 
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }

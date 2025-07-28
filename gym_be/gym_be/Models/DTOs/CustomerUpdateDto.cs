@@ -13,5 +13,6 @@ namespace gym_be.Models.DTOs
         public float? Weight { get; set; }
         public int? Type { get; set; }
         public int? Status { get; set; }
+        public string? Gender { get; set; }
     }
 } 

@@ -11,5 +11,6 @@ namespace gym_be.Models.DTOs
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
         public int Status { get; set; }
+        public string? Gender { get; set; }
     }
 } 

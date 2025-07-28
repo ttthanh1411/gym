@@ -34,6 +34,7 @@ const userProfile = {
   bio: AuthService.getCurrentUser()?.bio || 'Người đam mê fitness và yoga. Mục tiêu: sống khỏe mạnh và tích cực.',
   height: AuthService.getCurrentUser()?.height || '',
   weight: AuthService.getCurrentUser()?.weight || '',
+  gender: AuthService.getCurrentUser()?.gender || '',
 };
 
 const fitnessGoals = [
@@ -64,6 +65,7 @@ export default function ProfilePage() {
         address: formData.address,
         height: formData.height === '' ? null : Number(formData.height),
         weight: formData.weight === '' ? null : Number(formData.weight),
+        gender: formData.gender,
         // Do not include password or bio
       };
       const updated = await customerService.update(user.userId || user.customerID, updatePayload);
@@ -160,6 +162,33 @@ export default function ProfilePage() {
                         }`}
                     />
                   </div>
+                </div>
+
+                {/* Giới tính */}
+                <div>
+                  <label
+                    htmlFor="gender"
+                    className="block text-sm font-semibold text-gray-700 mb-3"
+                  >
+                    Giới tính
+                  </label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
+                    disabled={!isEditing}
+                    className="text-black w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-300 bg-gray-50 focus:bg-white"
+                  >
+                    <option value="">Chọn giới tính</option>
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                  </select>
                 </div>
 
                 {/* Email */}

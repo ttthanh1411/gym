@@ -9,6 +9,7 @@ export interface Customer {
   createdAt?: string;
   updatedAt?: string;
   password?: string;
+  gender?: string;
 }
 
 export interface CustomerFormData {
@@ -19,4 +20,5 @@ export interface CustomerFormData {
   password?: string;
   type?: number;
   status?: number;
+  gender?: string;
 }
