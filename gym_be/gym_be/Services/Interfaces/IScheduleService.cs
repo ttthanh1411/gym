@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 using gym_be.Models.Entities;
 
 namespace gym_be.Services.Interfaces
@@ -13,5 +13,6 @@ namespace gym_be.Services.Interfaces
         Task<(IEnumerable<Schedule> data, int totalCount)> GetPagedAsync(string? keyword, int page, int pageSize);
 
         Task<IEnumerable<ScheduleOptionDto>> GetOptionsAsync();
+        Task<Schedule> UpdateAsync(Guid id, ScheduleUpdateDto dto);
     }
 }

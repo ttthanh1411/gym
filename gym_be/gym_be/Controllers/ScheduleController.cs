@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using gym_be.Models.Entities;
+using gym_be.Models.DTOs;
 using gym_be.Services.Interfaces;
 
 namespace gym_be.Controllers
@@ -35,6 +36,13 @@ namespace gym_be.Controllers
         {
             var created = await _service.CreateAsync(schedule);
             return CreatedAtAction(nameof(GetById), new { id = created.ScheduleID }, created);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] ScheduleUpdateDto dto)
+        {
+            var updated = await _service.UpdateAsync(id, dto);
+            return Ok(updated);
         }
 
         [HttpDelete("{id}")]

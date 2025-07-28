@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 using gym_be.Models.Entities;
 using gym_be.Repositories.Interfaces;
 using gym_be.Services.Interfaces;
@@ -70,6 +70,19 @@ namespace gym_be.Services.Implementations
                     Label = $"{s.DayOfWeek} | {s.StartTime:HH:mm} - {s.EndTime:HH:mm}"
                 })
                 .ToListAsync();
+        }
+        public async Task<Schedule> UpdateAsync(Guid id, ScheduleUpdateDto dto)
+        {
+            var schedule = await _repository.GetByIdAsync(id);
+            if (schedule == null) throw new Exception("Schedule not found");
+
+            schedule.DayOfWeek = dto.DayOfWeek;
+            schedule.StartTime = DateTime.Parse(dto.StartTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+            schedule.EndTime = DateTime.Parse(dto.EndTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+            schedule.MaxParticipants = dto.MaxParticipants;
+
+            await _repository.SaveChangesAsync();
+            return schedule;
         }
     }
 }

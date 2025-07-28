@@ -7,10 +7,10 @@ export interface Schedule {
 }
 
 export interface ScheduleFormData {
-  dayofweek: string;
-  maxparticipants: number;
-  starttime: string;
-  endtime: string;
+  dayOfWeek: string;
+  maxParticipants: number;
+  startTime: string;
+  endTime: string;
 }
 
 export interface ScheduleApiResponse {
