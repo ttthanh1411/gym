@@ -36,7 +36,7 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, customers, services
     },
     {
       title: 'Tổng Khách Hàng',
-      value: customers.length,
+      value: customers.filter(c => c.type === 1).length,
       icon: Users,
       color: 'green',
       change: '+5%'
