@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import AuthService from '@/service/authService';
 import PaymentService from '@/service/paymentService';
+import { useEffect as useEffectReact, useState as useStateReact } from 'react';
+import { fetchAllServices } from '../../../service/serviceService';
+import { Service } from '../../../type/service';
 
 const appointments = [
   {
@@ -80,6 +83,8 @@ const months = [
 ];
 
 export default function SchedulePage() {
+  const [services, setServices] = useStateReact<Service[]>([]);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('list');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -89,6 +94,9 @@ export default function SchedulePage() {
   // Modal state
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
+  useEffectReact(() => {
+    fetchAllServices().then(setServices);
+  }, []);
 
   useEffect(() => {
     const user = AuthService.getCurrentUser();
@@ -97,6 +105,7 @@ export default function SchedulePage() {
     setLoadingCourses(true);
     PaymentService.getMyCourses(customerId)
       .then(data => {
+        console.log(data);
         setMyCourses(data);
         setLoadingCourses(false);
       })
@@ -317,6 +326,8 @@ export default function SchedulePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {myCourses.map(course => {
+              const service = services.find(s => s.serviceID === course.serviceId);
+              const totalPrice = (course.price || 0) + (service?.servicePrice || 0);
               const {
                 courseId,
                 courseName,
@@ -358,12 +369,12 @@ export default function SchedulePage() {
                       <span>Dịch vụ: {serviceName ? serviceName : "Không rõ"}</span>
                     </div>
                     <div className="mt-auto flex items-center justify-between">
-                      {/* <span className="text-base font-bold text-blue-600">
-                        {course.price?.toLocaleString('vi-VN')}₫
-                      </span> */}
+                      <span className="text-base font-bold text-blue-600">
+                        {totalPrice.toLocaleString('vi-VN')}₫
+                      </span>
                       <button
                         className="px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:from-blue-600 hover:to-blue-700 transition"
-                        onClick={() => handleViewDetails(course)}
+                        onClick={() => handleViewDetails( {...course, price: totalPrice})}
                       >
                         Xem chi tiết
                       </button>

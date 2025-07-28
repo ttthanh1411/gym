@@ -8,14 +8,16 @@ import {
 } from 'lucide-react';
 
 import { WorkoutCourse } from '../../types/workOutCourse';
+import { Service } from '../../type/service';
 
 interface CourseCardProps {
   course: WorkoutCourse;
+  service?: Service;
   onViewDetails: (course: WorkoutCourse) => void;
   onEdit: (course: WorkoutCourse) => void;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails, onEdit }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, service, onViewDetails, onEdit }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
       <div className="relative">
@@ -24,6 +26,12 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails, onEdit }
           alt={course.coursename || course.courseName}
           className="w-full h-48 object-cover"
         />
+        {service && (
+          <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm rounded px-2 py-1 text-xs text-gray-700 shadow">
+            <div>Dịch vụ: <span className="font-semibold">{service.serviceName}</span></div>
+            <div>Giá: <span className="font-semibold">{service.servicePrice.toLocaleString()}₫</span></div>
+          </div>
+        )}
         <button
           className="absolute top-3 right-3 bg-white rounded-full p-2 shadow hover:bg-blue-100 transition"
           onClick={e => {

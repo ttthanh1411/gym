@@ -15,6 +15,8 @@ import {
 
 import { AddCourseModal } from '../../../component/workout/AddCourseModal';
 import CourseCard from '../../../component/workout/CourseCard';
+import { fetchAllServices } from '../../../service/serviceService';
+import { Service } from '../../../type/service';
 import { CourseModal } from '../../../component/workout/CourseModal';
 import { SearchFilter } from '../../../component/workout/SearchFilter';
 import { StatsCard } from '../../../component/workout/StatsCard';
@@ -30,6 +32,7 @@ import { WorkoutCourse } from '../../../type/workOutCourse';
 function Workout() {
   const [courses, setCourses] = useState<WorkoutCourse[]>([]);
   const [trainers, setTrainers] = useState<Customer[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<WorkoutCourse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,7 +57,8 @@ function Workout() {
   React.useEffect(() => {
     Promise.all([
       fetchWorkoutCourses().then(setCourses),
-      fetchTrainers().then(setTrainers)
+      fetchTrainers().then(setTrainers),
+      fetchAllServices().then(setServices),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -200,14 +204,18 @@ function Workout() {
         {/* Course Grid */}
         {filteredAndSortedCourses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {filteredAndSortedCourses.map((course) => (
-              <CourseCard
-                key={course.courseid}
-                course={course}
-                onViewDetails={handleViewDetails}
-                onEdit={handleEditCourse}
-              />
-            ))}
+            {filteredAndSortedCourses.map((course) => {
+              const service = services.find(s => s.serviceID === course.serviceid);
+              return (
+                <CourseCard
+                  key={course.courseid}
+                  course={course}
+                  service={service}
+                  onViewDetails={handleViewDetails}
+                  onEdit={handleEditCourse}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-16">

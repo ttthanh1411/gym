@@ -9,6 +9,7 @@ export interface WorkoutCourse {
   description: string;
   schedules: Schedule[] | any;
   trainername?: string;
+  serviceid: string;
 }
 
 

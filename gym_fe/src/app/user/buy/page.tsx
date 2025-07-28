@@ -134,15 +134,18 @@ export default function BuyCoursePage() {
     const idx = cartItems.findIndex(
       (item: any) => item.id === (course.courseid || course.id)
     );
-    if (idx !== -1) {
-      showToast("Khoá học này đã có trong giỏ hàng");
-      return false;
-    } else {
+    const service = services.find(s => s.serviceID === course.serviceid);
+    const totalPrice = (course.price || 0) + (service?.servicePrice || 0);
+    if (idx === -1) {
       cartItems.push({
         ...course,
         id: course.courseid || course.id,
         quantity: 1,
+        price: totalPrice,
       });
+    } else {
+      cartItems[idx].quantity += 1;
+      cartItems[idx].price = totalPrice;
     }
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
@@ -156,17 +159,21 @@ export default function BuyCoursePage() {
     const idx = cartItems.findIndex(
       (item: any) => item.id === (course.courseid || course.id)
     );
+    const service = services.find(s => s.serviceID === course.serviceid);
+    const totalPrice = (course.price || 0) + (service?.servicePrice || 0);
     if (idx === -1) {
       cartItems.push({
         ...course,
         id: course.courseid || course.id,
         quantity: 1,
+        price: totalPrice,
       });
       localStorage.setItem("cartItems", JSON.stringify(cartItems));
       window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
     }
     router.push("/user/cart");
   };
+
 
 
   return (
@@ -234,14 +241,15 @@ export default function BuyCoursePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedCourses.map((course) => {
+          {sortedCourses.map((course: any) => {
+            const service = services.find(s => s.serviceID === course.serviceid);
             const isRecommended = recommendedIds.includes(
               course.courseid || course.id
             );
             return (
               <div
                 key={course.courseid || course.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow group"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col"
               >
                 <div className="relative">
                   <img
@@ -323,12 +331,25 @@ export default function BuyCoursePage() {
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="text-2xl font-bold text-gray-900">
-                          {formatPrice(course.price || course.price)}
+                          {formatPrice(course.price + service?.servicePrice)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">
-                        {course.personaltrainername || course.instructor}
-                      </p>
+                      {service && (
+                        <div className="mt-2 mb-2 space-y-1 text-xs text-gray-600">
+                          <div className="flex items-center">
+                            <span className="font-semibold">Dịch vụ:</span>
+                            <span className="ml-1">{service.serviceName}</span>
+                          </div>
+                          {/* <div className="flex items-center">
+                            <span className="font-semibold">Giá dịch vụ:</span>
+                            <span className="ml-1">{service.servicePrice.toLocaleString()}₫</span>
+                          </div> */}
+                        </div>
+                      )}
+                      <div className="flex items-center text-sm">
+                        <span className="font-semibold">Huấn luyện viên:</span>
+                        <span className="ml-1">{course.personaltrainername || course.instructor}</span>
+                      </div>
                     </div>
                   </div>
 
