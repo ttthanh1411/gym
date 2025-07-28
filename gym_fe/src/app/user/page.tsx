@@ -25,8 +25,13 @@ import MessageParser from "./MessageParser";
 import Link from "next/link";
 
 export default function UserDashboard() {
+  const [hasMounted, setHasMounted] = useState(false);
   const user = AuthService.getCurrentUser();
   const [showChatbot, setShowChatbot] = React.useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const [stats, setStats] = useState([
     {
@@ -163,7 +168,7 @@ export default function UserDashboard() {
       <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-blue-500 rounded-2xl p-8 text-white">
         <div className="max-w-3xl">
           <h1 className="text-3xl font-bold mb-2">
-            Chào mừng trở lại, {user?.name || "User"}! 👋
+            Chào mừng trở lại, {hasMounted ? (user?.name || 'User') : '...'}!
           </h1>
           <p className="text-emerald-100 text-lg">
             Hôm nay bạn có {schedules.length} buổi tập. Hãy cùng chinh phục mục
