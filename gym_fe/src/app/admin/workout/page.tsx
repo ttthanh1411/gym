@@ -22,6 +22,7 @@ import {
   createWorkoutCourse,
   fetchTrainers,
   fetchWorkoutCourses,
+  updateWorkoutCourse,
 } from '../../../service/workOutCourse';
 import { Customer } from '../../../type/customer';
 import { WorkoutCourse } from '../../../type/workOutCourse';
@@ -33,6 +34,19 @@ function Workout() {
   const [selectedCourse, setSelectedCourse] = useState<WorkoutCourse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<WorkoutCourse | null>(null);
+
+  // Mở modal update
+  const handleEditCourse = (course: WorkoutCourse) => {
+    setEditingCourse(course);
+    setIsEditModalOpen(true);
+  };
+  // Đóng modal update
+  const handleCloseEditModal = () => {
+    setEditingCourse(null);
+    setIsEditModalOpen(false);
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [filterByDuration, setFilterByDuration] = useState('');
@@ -191,6 +205,7 @@ function Workout() {
                 key={course.courseid}
                 course={course}
                 onViewDetails={handleViewDetails}
+                onEdit={handleEditCourse}
               />
             ))}
           </div>
@@ -206,6 +221,37 @@ function Workout() {
           </div>
         )}
       </div>
+
+      {/* Edit Course Modal */}
+      <AddCourseModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onAddCourse={async (data) => {
+          if (!editingCourse) return;
+          try {
+            await updateWorkoutCourse({
+              courseId: editingCourse.courseid,
+              courseName: data.coursename,
+              imageUrl: data.imageurl,
+              personalTrainerId: data.personaltrainer,
+              durationWeek: data.durationweek,
+              description: data.description,
+              personalTrainerName: data.trainername,
+              price: data.price,
+              serviceId: data.serviceid,
+              schedules: data.schedules,
+            });
+            const updated = await fetchWorkoutCourses();
+            setCourses(updated);
+            handleCloseEditModal();
+          } catch (e) {
+            console.error(e);
+            // alert('Cập nhật thất bại!');
+          }
+        }}
+        trainers={trainers}
+        initialData={editingCourse}
+      />
 
       {/* Course Modal */}
       <CourseModal

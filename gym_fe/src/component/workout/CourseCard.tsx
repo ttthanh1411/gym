@@ -4,6 +4,7 @@ import {
   Clock,
   Info,
   User,
+  Pen,
 } from 'lucide-react';
 
 import { WorkoutCourse } from '../../types/workOutCourse';
@@ -11,9 +12,10 @@ import { WorkoutCourse } from '../../types/workOutCourse';
 interface CourseCardProps {
   course: WorkoutCourse;
   onViewDetails: (course: WorkoutCourse) => void;
+  onEdit: (course: WorkoutCourse) => void;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails, onEdit }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
       <div className="relative">
@@ -22,7 +24,17 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails }) => {
           alt={course.coursename || course.courseName}
           className="w-full h-48 object-cover"
         />
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-medium text-gray-700">
+        <button
+          className="absolute top-3 right-3 bg-white rounded-full p-2 shadow hover:bg-blue-100 transition"
+          onClick={e => {
+            e.stopPropagation();
+            onEdit(course);
+          }}
+          title="Chỉnh sửa khoá tập"
+        >
+          <Pen className="w-5 h-5 text-blue-600" />
+        </button>
+        <div className="absolute top-4 right-14 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-medium text-gray-700">
           {(course.durationweek || course.durationWeek) + ' weeks'}
         </div>
       </div>

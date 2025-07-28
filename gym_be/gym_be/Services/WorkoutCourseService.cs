@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 using gym_be.Models.Entities;
 using gym_be.Repositories.Interfaces;
 
@@ -69,7 +69,7 @@ namespace gym_be.Services
             await _workoutCourseRepository.CreateWorkoutCourseAsync(workoutCourse);
         }
 
-        public async Task UpdateWorkoutCourseAsync(WorkoutCourseDto workoutCourseDto)
+        public async Task<WorkoutCourseDto> UpdateWorkoutCourseAsync(WorkoutCourseDto workoutCourseDto)
         {
             var workoutCourse = await _workoutCourseRepository.GetWorkoutCourseByIdAsync(workoutCourseDto.CourseId);
             if (workoutCourse != null)
@@ -83,7 +83,22 @@ namespace gym_be.Services
                 workoutCourse.Price = workoutCourseDto.Price;
                 workoutCourse.ServiceId = workoutCourseDto.ServiceId; // map serviceid
                 await _workoutCourseRepository.UpdateWorkoutCourseAsync(workoutCourse);
+                // Map updated entity to DTO (including trainer name if needed)
+                return new WorkoutCourseDto
+                {
+                    CourseId = workoutCourse.CourseId,
+                    CourseName = workoutCourse.CourseName,
+                    ImageUrl = workoutCourse.ImageUrl,
+                    PersonalTrainerId = workoutCourse.PersonalTrainerId,
+                    DurationWeek = workoutCourse.DurationWeek,
+                    Description = workoutCourse.Description,
+                    PersonalTrainerName = workoutCourse.PersonalTrainer?.Name,
+                    Schedules = workoutCourse.Schedules,
+                    Price = workoutCourse.Price,
+                    ServiceId = workoutCourse.ServiceId
+                };
             }
+            return null;
         }
 
         public async Task DeleteWorkoutCourseAsync(Guid courseId)

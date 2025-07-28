@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 using gym_be.Services;
 using Microsoft.AspNetCore.Mvc;
 using gym_be.Models;
@@ -60,13 +60,13 @@ namespace gym_be.Controllers
         }
 
         [HttpPut("{courseId}")]
-        public async Task<IActionResult> UpdateWorkoutCourse(Guid courseId, [FromBody] WorkoutCourseDto workoutCourseDto)
+        public async Task<IActionResult> UpdateWorkoutCourseOld(Guid courseId, [FromBody] WorkoutCourseDto workoutCourseDto)
         {
             if (courseId != workoutCourseDto.CourseId)
                 return BadRequest();
 
-            await _workoutCourseService.UpdateWorkoutCourseAsync(workoutCourseDto);
-            return NoContent();
+           var updatedCourse = await _workoutCourseService.UpdateWorkoutCourseAsync(workoutCourseDto);
+            return Ok(updatedCourse);
         }
 
         [HttpDelete("{courseId}")]

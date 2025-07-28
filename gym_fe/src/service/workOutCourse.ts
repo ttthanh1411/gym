@@ -30,6 +30,28 @@ export const mockTrainers: PersonalTrainer[] = [
   }
 ];
 
+export async function updateWorkoutCourse(course: {
+  courseId: string,
+  courseName: string,
+  imageUrl: string,
+  personalTrainerId: string,
+  durationWeek: number,
+  description: string,
+  personalTrainerName: string,
+  price: number,
+  serviceId: string,
+  schedules: string[]
+}): Promise<any> {
+  const res = await fetch(`http://localhost:5231/api/workout-course/${course.courseId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(course),
+  });
+  if (!res.ok) throw new Error('Failed to update course');
+  return res.json();
+}
+
+
 export const mockWorkoutCourses: WorkoutCourse[] = [
   {
     courseid: '1',

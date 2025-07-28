@@ -5,6 +5,7 @@ import {
   Clock,
   FileText,
   Image,
+  Pencil,
   Plus,
   User,
   X,
@@ -17,15 +18,17 @@ import { WorkoutCourse } from '../../type/workOutCourse';
 interface AddCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddCourse: (course: Omit<WorkoutCourse, 'courseid'>) => void;
+  onAddCourse: (data: any) => void;
   trainers: { customerID: string, name: string, email?: string }[];
+  initialData?: WorkoutCourse | null;
 }
 
 export const AddCourseModal: React.FC<AddCourseModalProps> = ({
   isOpen,
   onClose,
   onAddCourse,
-  trainers
+  trainers,
+  initialData
 }) => {
   const [formData, setFormData] = useState({
     coursename: '',
@@ -37,6 +40,34 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     price: '', // keep as string for input
     serviceid: '' // add serviceid
   });
+
+  React.useEffect(() => {
+    if (initialData) {
+      setFormData({
+        coursename: initialData.coursename || '',
+        imageurl: initialData.imageurl || '',
+        personaltrainer: initialData.personaltrainerid || initialData.personaltrainername || '',
+        durationweek: initialData.durationweek?.toString() || '',
+        description: initialData.description || '',
+        schedules: Array.isArray(initialData.schedules)
+          ? initialData.schedules.map((s: any) => s.scheduleid || s.id || s)
+          : [],
+        price: initialData.price?.toString() || '',
+        serviceid: initialData.serviceid || ''
+      });
+    } else {
+      setFormData({
+        coursename: '',
+        imageurl: '',
+        personaltrainer: '',
+        durationweek: '',
+        description: '',
+        schedules: [],
+        price: '',
+        serviceid: ''
+      });
+    }
+  }, [initialData, isOpen]);
   
   const [allSchedules, setAllSchedules] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -58,6 +89,55 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      if (initialData) {
+        // Update: send all fields for update, matching add logic
+        const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
+        const updatedCourse = {
+          coursename: formData.coursename,
+          imageurl: formData.imageurl,
+          personaltrainer: formData.personaltrainer,
+          durationweek: parseInt(formData.durationweek) || 0,
+          description: formData.description,
+          trainername: selectedTrainer?.name || '',
+          schedules: formData.schedules,
+          price: parseFloat(formData.price) || 0,
+          serviceid: formData.serviceid,
+        };
+        onAddCourse(updatedCourse);
+        // Do not reset form after update
+      } else {
+        // Add: create full course object
+        const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
+        const newCourse = {
+          coursename: formData.coursename,
+          imageurl: formData.imageurl,
+          personaltrainer: formData.personaltrainer,
+          durationweek: parseInt(formData.durationweek) || 0,
+          description: formData.description,
+          trainername: selectedTrainer?.name || '',
+          schedules: formData.schedules,
+          price: parseFloat(formData.price) || 0,
+          serviceid: formData.serviceid, // add serviceid if present
+        };
+        onAddCourse(newCourse);
+        // Reset form after adding
+        setFormData({
+          coursename: '',
+          imageurl: '',
+          personaltrainer: '',
+          durationweek: 1,
+          description: '',
+          schedules: [],
+        });
+      }
+      setErrors({});
+      onClose();
+    }
   };
 
   const validateForm = () => {
@@ -100,39 +180,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
 
-    if (validateForm()) {
-      const selectedTrainer = trainers.find(t => t.customerID === formData.personaltrainer);
-      
-      const newCourse = {
-        coursename: formData.coursename,
-        imageurl: formData.imageurl,
-        personaltrainer: formData.personaltrainer,
-        durationweek: parseInt(formData.durationweek) || 0,
-        description: formData.description,
-        trainername: selectedTrainer?.name || '',
-        schedules: formData.schedules,
-        price: parseFloat(formData.price) || 0, // convert to number for backend
-        serviceid: formData.serviceid // add serviceid
-      };
-
-      onAddCourse(newCourse);
-
-      // Reset form
-      setFormData({
-        coursename: '',
-        imageurl: '',
-        personaltrainer: '',
-        durationweek: 1,
-        description: '',
-        schedules: [],
-      });
-      setErrors({});
-      onClose();
-    }
-  };
 
   const handleClose = () => {
     setFormData({
@@ -156,7 +204,11 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-2 rounded-lg">
                 <Plus className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Add New Course</h2>
+              {initialData ? (
+                <h2 className="text-2xl font-bold text-gray-900">Edit Course</h2>
+              ) : (
+                <h2 className="text-2xl font-bold text-gray-900">Add New Course</h2>
+              )}
             </div>
             <button
               onClick={handleClose}
@@ -181,7 +233,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               onChange={handleInputChange}
               placeholder="Enter course name..."
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${errors.coursename ? 'border-red-500' : 'border-gray-300'
-                }`}
+                } ${initialData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              disabled={!!initialData}
             />
             {errors.coursename && (
               <p className="text-red-500 text-sm mt-1">{errors.coursename}</p>
@@ -201,7 +254,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${errors.imageurl ? 'border-red-500' : 'border-gray-300'
-                }`}
+                } ${initialData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              disabled={!!initialData}
             />
             {errors.imageurl && (
               <p className="text-red-500 text-sm mt-1">{errors.imageurl}</p>
@@ -230,8 +284,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               name="personaltrainer"
               value={formData.personaltrainer}
               onChange={handleInputChange}
-              className={`text-black w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white ${errors.personaltrainer ? 'border-red-500' : 'border-gray-300'
-                }`}
+              className={`text-black w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white ${errors.personaltrainer ? 'border-red-500' : 'border-gray-300'}`}
             >
               <option value="" className='text-black'>Select a trainer...</option>
               {trainers.map(trainer => (
@@ -259,7 +312,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               min="1"
               max="52"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${errors.durationweek ? 'border-red-500' : 'border-gray-300'
-                }`}
+                } ${initialData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              disabled={!!initialData}
             />
             {errors.durationweek && (
               <p className="text-red-500 text-sm mt-1">{errors.durationweek}</p>
@@ -278,6 +332,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               min={0}
               step={1000}
               placeholder="Nhập giá khóa học (VND)"
+              disabled={!!initialData}
             />
           </div>
 
@@ -294,7 +349,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               placeholder="Describe the course objectives, target audience, and what participants will learn..."
               rows={4}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none ${errors.description ? 'border-red-500' : 'border-gray-300'
-                }`}
+                } ${initialData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              disabled={!!initialData}
             />
             <div className="flex justify-between items-center mt-1">
               {errors.description && (
@@ -317,6 +373,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               value={formData.serviceid}
               onChange={handleInputChange}
               className="text-black w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none bg-white"
+              disabled={!!initialData}
             >
               <option value="">Select a service...</option>
               {services.map(service => (
@@ -385,8 +442,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
               type="submit"
               className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <Plus className="w-4 h-4" />
-              Thêm khóa tập
+              {initialData ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              {initialData ? 'Update Course' : 'Add Course'}
             </button>
           </div>
         </form>

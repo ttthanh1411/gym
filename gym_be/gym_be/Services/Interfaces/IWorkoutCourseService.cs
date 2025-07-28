@@ -1,4 +1,4 @@
-﻿using gym_be.Models.DTOs;
+using gym_be.Models.DTOs;
 
 namespace gym_be.Services
 {
@@ -10,7 +10,7 @@ namespace gym_be.Services
 
         Task CreateWorkoutCourseAsync(WorkoutCourseDto workoutCourseDto);
 
-        Task UpdateWorkoutCourseAsync(WorkoutCourseDto workoutCourseDto);
+        Task<WorkoutCourseDto> UpdateWorkoutCourseAsync(WorkoutCourseDto workoutCourseDto);
 
         Task DeleteWorkoutCourseAsync(Guid courseId);
     }
