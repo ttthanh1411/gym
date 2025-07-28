@@ -47,13 +47,13 @@ namespace gym_be.Controllers
                     .CountAsync();
 
                 // Monthly revenue
-                var monthlyRevenue = await _context.Appointments
-                    .Where(a => a.appointmentdate >= startOfMonth && a.statusid == completedStatusId)
-                    .SumAsync(a => a.price);
+                var monthlyRevenue = await _context.Payments
+                    .Where(p => p.PaidAt >= startOfMonth)
+                    .SumAsync(p => p.Amount);
 
-                var lastMonthRevenue = await _context.Appointments
-                    .Where(a => a.appointmentdate >= startOfLastMonth && a.appointmentdate < startOfMonth && a.statusid == completedStatusId)
-                    .SumAsync(a => a.price);
+                var lastMonthRevenue = await _context.Payments
+                    .Where(p => p.PaidAt >= startOfLastMonth && p.PaidAt < startOfMonth)
+                    .SumAsync(p => p.Amount);
 
                 var revenueChange = lastMonthRevenue > 0 
                     ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue * 100).ToString("F1")
@@ -97,12 +97,6 @@ namespace gym_be.Controllers
                 var today = DateTime.UtcNow.Date;
                 var data = new List<object>();
 
-                // Get completed status ID
-                var completedStatusId = await _context.Status
-                    .Where(s => s.statusname.ToLower().Contains("completed") || s.statusname.ToLower().Contains("hoàn thành"))
-                    .Select(s => s.statusid)
-                    .FirstOrDefaultAsync();
-
                 if (period == "month")
                 {
                     // Last 6 months
@@ -112,9 +106,9 @@ namespace gym_be.Controllers
                         var startOfMonth = new DateTime(month.Year, month.Month, 1, 0, 0, 0, DateTimeKind.Utc);
                         var endOfMonth = startOfMonth.AddMonths(1);
 
-                        var revenue = await _context.Appointments
-                            .Where(a => a.appointmentdate >= startOfMonth && a.appointmentdate < endOfMonth && a.statusid == completedStatusId)
-                            .SumAsync(a => a.price);
+                        var revenue = await _context.Payments
+                            .Where(p => p.PaidAt >= startOfMonth && p.PaidAt < endOfMonth)
+                            .SumAsync(p => p.Amount);
 
                         data.Add(new
                         {
@@ -131,9 +125,9 @@ namespace gym_be.Controllers
                         var weekStart = today.AddDays(-(int)today.DayOfWeek - (i * 7));
                         var weekEnd = weekStart.AddDays(7);
 
-                        var revenue = await _context.Appointments
-                            .Where(a => a.appointmentdate >= weekStart && a.appointmentdate < weekEnd && a.statusid == completedStatusId)
-                            .SumAsync(a => a.price);
+                        var revenue = await _context.Payments
+                            .Where(p => p.PaidAt >= weekStart && p.PaidAt < weekEnd)
+                            .SumAsync(p => p.Amount);
 
                         data.Add(new
                         {
