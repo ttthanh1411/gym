@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   Calendar,
@@ -17,6 +17,14 @@ interface AppointmentListProps {
   onDeleteAppointment: (appointmentId: string) => void;
 }
 
+import StatusService, { AppointmentStatus } from '../../service/statusService';
+
+const statusColorMap: Record<string, string> = {
+  'Đã xác nhận': 'bg-green-100 text-green-800',
+  'Đã hoàn thành': 'bg-yellow-100 text-yellow-800',
+  'Đã huỷ': 'bg-red-100 text-red-700',
+};
+
 const AppointmentList: React.FC<AppointmentListProps> = ({
   appointments,
   customers,
@@ -27,6 +35,17 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
+  const [statuses, setStatuses] = useState<AppointmentStatus[]>([]);
+  const [loadingStatuses, setLoadingStatuses] = useState(true);
+
+  useEffect(() => {
+    StatusService.getStatuses()
+      .then((data: AppointmentStatus[]) => {
+        setStatuses(data);
+        setLoadingStatuses(false);
+      })
+      .catch(() => setLoadingStatuses(false));
+  }, []);
 
   const filteredAppointments = appointments.filter(appointment => {
     const customer = customers.find(c => c.customerid === appointment.customerid);
@@ -37,11 +56,12 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
       customer?.customername.toLowerCase().includes(searchTerm.toLowerCase()) ||
       service?.servicename.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'completed' && appointment.status) ||
-      (statusFilter === 'pending' && !appointment.status);
+    const statusName = statuses.find((status) => status.statusid === appointment.statusid)?.statusname;
 
-    const today = new Date().toISOString().split('T')[0];
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === statusName);
+
+    const today = new Date().toISOString();
     const appointmentDate = appointment.appointmentdate;
 
     const matchesDate = dateFilter === 'all' ||
@@ -75,10 +95,14 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={loadingStatuses}
             >
               <option value="all">Tất cả trạng thái</option>
-              <option value="pending">Chờ xử lý</option>
-              <option value="completed">Hoàn thành</option>
+              {statuses.map((status) => (
+                <option key={status.statusid} value={status.statusname}>
+                  {status.statusname}
+                </option>
+              ))}
             </select>
 
             <select
@@ -113,11 +137,12 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 truncate">{appointment.appointmentname}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${appointment.status
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                    {appointment.status ? 'Hoàn thành' : 'Chờ xử lý'}
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                      statusColorMap[statuses.find((status) => status.statusid === appointment.statusid)?.statusname!] || 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {statuses.find((status) => status.statusid === appointment.statusid)?.statusname || appointment.statusid}
                   </span>
                 </div>
 
