@@ -7,13 +7,10 @@ import React, { useEffect, useState } from "react";
 import {
   Award,
   Calendar,
-  Clock,
-  Flame,
   MessageCircle,
   Target,
   TrendingUp,
   Trophy,
-  Users,
   X,
 } from "lucide-react";
 import Chatbot from "react-chatbot-kit";
@@ -26,23 +23,6 @@ import ActionProvider from "./ActionProvider";
 import config from "./config";
 import MessageParser from "./MessageParser";
 import Link from "next/link";
-
-const recentAchievements = [
-  {
-    id: 1,
-    title: "Hoàn thành 30 ngày tập liên tiếp",
-    description: "Bạn đã duy trì thói quen tập luyện tuyệt vời!",
-    date: "2 ngày trước",
-    type: "streak",
-  },
-  {
-    id: 2,
-    title: "Đạt mục tiêu calories tuần",
-    description: "Đốt cháy 2,500 calories trong tuần",
-    date: "1 tuần trước",
-    type: "goal",
-  },
-];
 
 export default function UserDashboard() {
   const user = AuthService.getCurrentUser();
@@ -66,7 +46,7 @@ export default function UserDashboard() {
   ]);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
-  
+
   // State for schedules
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(true);
@@ -88,17 +68,20 @@ export default function UserDashboard() {
         setStats((prev) => [
           {
             ...prev[0],
-            value: data.totalPackages?.toLocaleString('vi-VN') ?? "0",
+            value: data.totalPackages?.toLocaleString("vi-VN") ?? "0",
             change: prev[0].change,
             changeType: "increase",
           },
           {
             ...prev[1],
-            value: data.totalSpent !== undefined ? data.totalSpent.toLocaleString('vi-VN') + '₫' : "0₫",
+            value:
+              data.totalSpent !== undefined
+                ? data.totalSpent.toLocaleString("vi-VN") + "₫"
+                : "0₫",
             change: prev[1].change,
             changeType: "increase",
           },
-          ...prev.slice(2)
+          ...prev.slice(2),
         ]);
         setStatsLoading(false);
       })
@@ -106,9 +89,9 @@ export default function UserDashboard() {
         setStats((prev) => [
           { ...prev[0], value: "Lỗi" },
           { ...prev[1], value: "Lỗi" },
-          ...prev.slice(2)
+          ...prev.slice(2),
         ]);
-        setStatsError('Không thể tải thống kê người dùng');
+        setStatsError("Không thể tải thống kê người dùng");
         setStatsLoading(false);
       });
 
@@ -121,6 +104,10 @@ export default function UserDashboard() {
       })
       .catch((error) => {
         setLoadingSchedules(false);
+      });
+    AppointmentService.getMyAppointments(customerId)
+      .then((data) => {
+        setAppointments(data);
         setLoadingAppointments(false);
       })
       .catch((error) => {
@@ -196,7 +183,10 @@ export default function UserDashboard() {
             >
               Xem lịch tập
             </a>
-            <Link href="/user/buy" className="bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-800 transition-colors">
+            <Link
+              href="/user/buy"
+              className="bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-800 transition-colors"
+            >
               Khám phá khóa học
             </Link>
           </div>
@@ -234,7 +224,10 @@ export default function UserDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Schedules fetched from API */}
-        <div id="schedule" className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div
+          id="schedule"
+          className="bg-white rounded-xl shadow-sm border border-gray-100"
+        >
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -345,13 +338,15 @@ export default function UserDashboard() {
                       </p>
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="text-xs text-gray-500">
-                          {new Date(appointment.appointmentDate).toLocaleDateString('vi-VN')}
+                          {new Date(
+                            appointment.appointmentDate
+                          ).toLocaleDateString("vi-VN")}
                         </span>
                         <span className="text-xs text-gray-500">
                           {appointment.appointmentTime.substring(0, 5)}
                         </span>
                         <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                          {appointment.price?.toLocaleString('vi-VN')}₫
+                          {appointment.price?.toLocaleString("vi-VN")}₫
                         </span>
                       </div>
                     </div>
