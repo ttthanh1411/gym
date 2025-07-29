@@ -135,17 +135,20 @@ export default function BuyCoursePage() {
       (item: any) => item.id === (course.courseid || course.id)
     );
     const service = services.find(s => s.serviceID === course.serviceid);
-    const totalPrice = (course.price || 0) + (service?.servicePrice || 0);
+    const servicePrice = service?.servicePrice || 0;
+
     if (idx === -1) {
       cartItems.push({
         ...course,
         id: course.courseid || course.id,
         quantity: 1,
-        price: totalPrice,
+        servicePrice,
+        serviceName: service?.serviceName || "",
       });
     } else {
       cartItems[idx].quantity += 1;
-      cartItems[idx].price = totalPrice;
+      cartItems[idx].servicePrice = servicePrice;
+      cartItems[idx].serviceName = service?.serviceName || "";
     }
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
@@ -160,13 +163,14 @@ export default function BuyCoursePage() {
       (item: any) => item.id === (course.courseid || course.id)
     );
     const service = services.find(s => s.serviceID === course.serviceid);
-    const totalPrice = (course.price || 0) + (service?.servicePrice || 0);
+    const servicePrice = service?.servicePrice || 0;
     if (idx === -1) {
       cartItems.push({
         ...course,
         id: course.courseid || course.id,
         quantity: 1,
-        price: totalPrice,
+        servicePrice,
+        serviceName: service?.serviceName || "",
       });
       localStorage.setItem("cartItems", JSON.stringify(cartItems));
       window.dispatchEvent(new StorageEvent("storage", { key: "cartItems" }));
