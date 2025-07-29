@@ -103,7 +103,7 @@ export default function ProfilePage() {
                 <span className="bg-indigo-700 px-3 py-1 rounded-full">
                   {formData.membershipType} Member
                 </span>
-                <span>Tham gia từ {new Date(formData.joinDate).toLocaleDateString('vi-VN')}</span>
+                {/* <span>Tham gia từ {new Date(formData.joinDate).toLocaleDateString('vi-VN')}</span> */}
               </div>
             </div>
           </div>
