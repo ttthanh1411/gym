@@ -331,19 +331,19 @@ export default function BuyCoursePage() {
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="text-2xl font-bold text-gray-900">
-                          {formatPrice(course.price + service?.servicePrice)}
+                          {formatPrice(course.price)}
                         </span>
                       </div>
                       {service && (
-                        <div className="mt-2 mb-2 space-y-1 text-xs text-gray-600">
+                        <div className="mt-2 mb-1 space-y-1 text-xs text-gray-600">
                           <div className="flex items-center">
                             <span className="font-semibold">Dịch vụ:</span>
                             <span className="ml-1">{service.serviceName}</span>
                           </div>
-                          {/* <div className="flex items-center">
+                          <div className="flex items-center">
                             <span className="font-semibold">Giá dịch vụ:</span>
                             <span className="ml-1">{service.servicePrice.toLocaleString()}₫</span>
-                          </div> */}
+                          </div>
                         </div>
                       )}
                       <div className="flex items-center text-sm">
