@@ -64,7 +64,7 @@ export default function PaymentsPage() {
     };
 
     fetchPaymentHistory();
-  }, [user?.userId]);
+  }, [user]);
 
   // Tính toán thống kê từ dữ liệu thực
   const paymentStats = [

@@ -38,18 +38,16 @@ interface Course {
   serviceid: string;
   schedules: string[];
 }
-
-interface Schedule {
-  scheduleid: string;
-  dayofWeek: string;
-  maxparticipants: number;
-  starttime: string;
-  endtime: string;
-  courseid: string;
-  coursename: string;
-  teachername: string;
+export interface Schedule {
+  scheduleId: string;
+  dayOfWeek: string;
+  maxParticipants: number;
+  startTime: string;
+  endTime: string;
+  courseId: string;
+  courseName: string;
+  teacherName: string;
 }
-
 interface PaymentHistory {
   paymentId: string;
   courseId: string;

@@ -23,8 +23,11 @@ import ActionProvider from "./ActionProvider";
 import config from "./config";
 import MessageParser from "./MessageParser";
 import Link from "next/link";
+import { isSameDay } from "@/utils/date.utils";
+import { format } from "date-fns";
 
 export default function UserDashboard() {
+  const router = require("next/navigation").useRouter();
   const [hasMounted, setHasMounted] = useState(false);
   const user = AuthService.getCurrentUser();
   const [showChatbot, setShowChatbot] = React.useState(false);
@@ -168,11 +171,15 @@ export default function UserDashboard() {
       <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-blue-500 rounded-2xl p-8 text-white">
         <div className="max-w-3xl">
           <h1 className="text-3xl font-bold mb-2">
-            Chào mừng trở lại, {hasMounted ? (user?.name || 'User') : '...'}!
+            Chào mừng trở lại, {hasMounted ? user?.name || "User" : "..."}!
           </h1>
           <p className="text-emerald-100 text-lg">
-            Hôm nay bạn có {schedules.length} buổi tập. Hãy cùng chinh phục mục
-            tiêu fitness của mình!
+            Hôm nay bạn có{" "}
+            {
+              schedules.filter((s) => isSameDay(new Date(), new Date(s.date)))
+                .length
+            }{" "}
+            buổi tập. Hãy cùng chinh phục mục tiêu fitness của mình!
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
             <a
@@ -252,7 +259,7 @@ export default function UserDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {schedules.map((schedule: any) => (
+                {schedules.slice(0, 3).map((schedule: any) => (
                   <div
                     key={schedule.scheduleId}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -267,30 +274,13 @@ export default function UserDashboard() {
                       </p>
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="mr-1">🕒</span>
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                        {/* <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
                           {schedule.dayOfWeek}
-                        </span>
+                        </span> */}
                         <div className="flex flex-col text-xs text-gray-500">
                           <div className="flex items-center pl-4">
-                            {(() => {
-                              let start = schedule.startTime;
-                              let end = schedule.endTime;
-
-                              const startDate = new Date(start);
-                              const endDate = new Date(end);
-
-                              const dateStr = startDate
-                                .toISOString()
-                                .split("T")[0]; // yyyy-mm-dd
-                              const startTime = startDate
-                                .toTimeString()
-                                .slice(0, 5); // hh:mm
-                              const endTime = endDate
-                                .toTimeString()
-                                .slice(0, 5); // hh:mm
-
-                              return `${dateStr}: ${startTime} - ${endTime}`;
-                            })()}
+                            {format(new Date(schedule.startTime), "yyyy-MM-dd HH:mm")} {" - "} 
+                            {format(new Date(schedule.endTime), "HH:mm")}
                           </div>
                         </div>
                       </div>
@@ -300,9 +290,12 @@ export default function UserDashboard() {
                 ))}
               </div>
             )}
-            {/* <button className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+            <button
+              className="w-full mt-4 text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+              onClick={() => router.push("/user/my-course?tab=calendar")}
+            >
               Xem tất cả lịch tập →
-            </button> */}
+            </button>
           </div>
         </div>
 

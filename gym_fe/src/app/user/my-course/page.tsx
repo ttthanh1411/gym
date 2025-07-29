@@ -6,106 +6,52 @@ import {
   Clock,
   MapPin,
   Users,
-  Plus,
-  Filter,
   ChevronLeft,
   ChevronRight,
   CheckCircle,
   XCircle,
-  AlertCircle,
   X,
-  Star,
   Zap,
   Target,
-  BookOpen,
   CurrencyIcon,
   BookCheck,
+  LoaderPinwheel,
 } from "lucide-react";
 import AuthService from "@/service/authService";
-import PaymentService from "@/service/paymentService";
+import { format, isSameDay } from "date-fns";
+import PaymentService, { Schedule } from "@/service/paymentService";
 import { useEffect as useEffectReact, useState as useStateReact } from "react";
 import { fetchAllServices } from "../../../service/serviceService";
 import { Service } from "../../../type/service";
 
-const appointments = [
-  {
-    id: 1,
-    courseName: "Yoga cơ bản",
-    instructor: "Cô Mai Linh",
-    date: "2024-01-15",
-    time: "09:00 - 10:00",
-    location: "Phòng A1",
-    status: "confirmed",
-    participants: 12,
-    maxParticipants: 15,
-    type: "group",
-  },
-  {
-    id: 2,
-    courseName: "Personal Training",
-    instructor: "Thầy Nam Khánh",
-    date: "2024-01-15",
-    time: "14:00 - 15:00",
-    location: "Phòng PT1",
-    status: "confirmed",
-    participants: 1,
-    maxParticipants: 1,
-    type: "personal",
-  },
-  {
-    id: 3,
-    courseName: "Cardio đốt cháy",
-    instructor: "Thầy Nam Khánh",
-    date: "2024-01-16",
-    time: "19:00 - 20:00",
-    location: "Phòng B2",
-    status: "pending",
-    participants: 8,
-    maxParticipants: 12,
-    type: "group",
-  },
-  {
-    id: 4,
-    courseName: "Tăng cơ nâng cao",
-    instructor: "Thầy Hùng Cường",
-    date: "2024-01-17",
-    time: "18:00 - 19:30",
-    location: "Phòng Weight",
-    status: "cancelled",
-    participants: 6,
-    maxParticipants: 10,
-    type: "group",
-  },
-];
-
 const weekDays = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-const months = [
-  "Tháng 1",
-  "Tháng 2",
-  "Tháng 3",
-  "Tháng 4",
-  "Tháng 5",
-  "Tháng 6",
-  "Tháng 7",
-  "Tháng 8",
-  "Tháng 9",
-  "Tháng 10",
-  "Tháng 11",
-  "Tháng 12",
-];
+
+import { useSearchParams } from "next/navigation";
 
 export default function SchedulePage() {
+  const searchParams = useSearchParams();
   const [services, setServices] = useStateReact<Service[]>([]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"calendar" | "list">("list");
-  const [filterStatus, setFilterStatus] = useState("all");
   const [myCourses, setMyCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
-
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loadingSchedules, setLoadingSchedules] = useState(false);
   // Modal state
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
+  // State for selected date in calendar view
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Set viewMode based on ?tab=calendar in URL
+  useEffectReact(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "calendar") {
+      setViewMode("calendar");
+    }
+  }, [searchParams]);
+
   useEffectReact(() => {
     fetchAllServices().then(setServices);
   }, []);
@@ -115,9 +61,9 @@ export default function SchedulePage() {
     if (!user) return;
     const customerId = user.userId || user.customerID;
     setLoadingCourses(true);
+    setLoadingSchedules(true);
     PaymentService.getMyCourses(customerId)
       .then((data) => {
-        console.log(data);
         setMyCourses(data);
         setLoadingCourses(false);
       })
@@ -125,62 +71,22 @@ export default function SchedulePage() {
         console.error("Failed to get courses:", error);
         setLoadingCourses(false);
       });
+    PaymentService.getMySchedules(customerId)
+      .then((data) => {
+        setSchedules(data);
+        setLoadingSchedules(false);
+      })
+      .catch((error) => {
+        console.error("Failed to get schedules:", error);
+        setLoadingSchedules(false);
+      });
   }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-700 border-green-200";
-      case "pending":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "cancelled":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <CheckCircle className="w-4 h-4" />;
-      case "pending":
-        return <AlertCircle className="w-4 h-4" />;
-      case "cancelled":
-        return <XCircle className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "Đã xác nhận";
-      case "pending":
-        return "Chờ xác nhận";
-      case "cancelled":
-        return "Đã hủy";
-      default:
-        return status;
-    }
-  };
-
-  const filteredAppointments = appointments.filter((appointment) => {
-    if (filterStatus === "all") return true;
-    return appointment.status === filterStatus;
-  });
 
   const generateCalendarDays = () => {
     const firstDay = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
       1
-    );
-    const lastDay = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      0
     );
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
@@ -194,10 +100,12 @@ export default function SchedulePage() {
     return days;
   };
 
-  const hasAppointment = (date: Date) => {
-    return appointments.some((appointment) => {
-      const appointmentDate = new Date(appointment.date);
-      return appointmentDate.toDateString() === date.toDateString();
+  const hasSchedule = (date: Date) => {
+    return schedules.some((schedule) => {
+      const scheduleDate = new Date(schedule.startTime);
+      return (
+        isSameDay(scheduleDate, date)
+      );
     });
   };
 
@@ -249,27 +157,16 @@ export default function SchedulePage() {
                 Lịch
               </button>
             </div>
-
-            {/* <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="confirmed">Đã xác nhận</option>
-              <option value="pending">Chờ xác nhận</option>
-              <option value="cancelled">Đã hủy</option>
-            </select> */}
           </div>
         </div>
       </div>
 
-      {viewMode === "calendar" ? (
+      {viewMode === "calendar" && (
         /* Calendar View */
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">
-              {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+              {format(currentDate, "MMMM yyyy")}
             </h3>
             <div className="flex items-center space-x-2">
               <button
@@ -313,30 +210,91 @@ export default function SchedulePage() {
           </div>
 
           <div className="grid grid-cols-7 gap-1">
-            {calendarDays.map((day, index) => (
-              <div
-                key={index}
-                className={`p-3 text-center text-sm border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
-                  day.getMonth() !== currentDate.getMonth()
-                    ? "text-gray-400"
-                    : "text-gray-900"
-                } ${
-                  day.toDateString() === new Date().toDateString()
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : ""
-                }`}
-              >
-                <div className="relative">
-                  {day.getDate()}
-                  {hasAppointment(day) && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full"></div>
-                  )}
+            {calendarDays.map((day, index) => {
+              const isSelected =
+                selectedDate &&
+                isSameDay(day, selectedDate);
+              return (
+                <div
+                  key={index}
+                  className={[
+                    "p-3 text-center text-sm border transition-colors cursor-pointer",
+                    isSelected ? "bg-blue-50 text-blue-600 font-medium" : "",
+                    hasSchedule(day)
+                      ? "bg-blue-100 text-blue-700 font-semibold border-blue-300"
+                      : "border-gray-100 hover:bg-gray-50",
+                  ].join(" ")}
+                  onClick={() => setSelectedDate(day)}
+                >
+                  <div className="relative">
+                    {format(day, "d")}
+                    {hasSchedule(day) && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Schedule details for selected day */}
+          {selectedDate && (
+            <div className="mt-6">
+              <h4 className="text-base font-semibold mb-2 text-blue-700 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Lịch tập ngày {format(selectedDate, "dd/MM/yyyy")}
+              </h4>
+              <ul className="space-y-3">
+                {schedules.filter((sch) => {
+                  const schDate = new Date(sch.startTime);
+                  return (
+                    isSameDay(schDate, selectedDate)
+                  );
+                }).length === 0 ? (
+                  <li className="text-gray-500 italic">
+                    Không có lịch tập nào cho ngày này.
+                  </li>
+                ) : (
+                  schedules
+                    .filter((sch) => {
+                      const schDate = new Date(sch.startTime);
+                      return (
+                        isSameDay(schDate, selectedDate)
+                      );
+                    })
+                    .map((sch, idx) => (
+                      <li
+                        key={idx}
+                        className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+                      >
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span className="font-medium">{sch.courseName || "Lớp tập"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          {sch.teacherName && (
+                            <span>
+                              <Users className="inline-block w-4 h-4 mr-1" />{" "}
+                              {sch.teacherName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-blue-600" />
+                          <span className="font-medium text-blue-800">
+                            {format(new Date(sch.startTime), "HH:mm")} {" - "} 
+                            {format(new Date(sch.endTime), "HH:mm")}
+                          </span>
+                        </div>
+                      </li>
+                    ))
+                )}
+              </ul>
+            </div>
+          )}
         </div>
-      ) : (
+      )}
+
+      {viewMode === "list" && (
         /* List View */
         <div className="space-y-4">
           {/* My Courses */}
@@ -377,14 +335,14 @@ export default function SchedulePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myCourses.map((course) => {
+                {myCourses.map((course, idx) => {
                   const service = services.find(
                     (s) => s.serviceID === course.serviceId
                   );
 
                   const servicePrice = service?.servicePrice ?? 0;
                   const serviceName = service?.serviceName;
-                
+
                   const {
                     courseId,
                     courseName,
@@ -396,7 +354,7 @@ export default function SchedulePage() {
 
                   return (
                     <div
-                      key={courseId}
+                      key={idx}
                       className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow flex flex-col"
                     >
                       <div className="relative mb-3">
@@ -463,18 +421,21 @@ export default function SchedulePage() {
               </div>
             )}
           </div>
-
-          {filteredAppointments.length === 0 && (
+          {myCourses.length === 0 && !loadingCourses && (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-gray-400" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Chưa có khoá tập
+              </h3>
+            </div>
+          )}
+          {loadingCourses && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-spin">
+                <LoaderPinwheel className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Chưa có lịch tập
+                Đang tải khoá tập...
               </h3>
-              <p className="text-gray-600 mb-4">
-                Hãy đặt lịch để bắt đầu hành trình fitness của bạn!
-              </p>
             </div>
           )}
         </div>
@@ -610,7 +571,8 @@ export default function SchedulePage() {
                         "Không có thông tin dịch vụ"}
                     </p>
                     <p className="text-gray-700">
-                      {selectedCourse.servicePrice?.toLocaleString("vi-VN") + "₫" || 0}
+                      {selectedCourse.servicePrice?.toLocaleString("vi-VN") +
+                        "₫" || 0}
                     </p>
                   </div>
 
