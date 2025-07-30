@@ -14,6 +14,7 @@ import {
 import { fetchAllServices } from '../../service/serviceService';
 import { fetchAllSchedules } from '../../service/workOutCourse';
 import { WorkoutCourse } from '../../type/workOutCourse';
+import { Schedule } from '@/type/schedule';
 
 interface AddCourseModalProps {
   isOpen: boolean;
@@ -23,6 +24,17 @@ interface AddCourseModalProps {
   initialData?: WorkoutCourse | null;
 }
 
+interface FormData {
+coursename: string;
+imageurl: string;
+personaltrainer: string;
+durationweek: string;
+description: string;
+schedules: string[];
+price: string;
+serviceid: string;
+}
+
 export const AddCourseModal: React.FC<AddCourseModalProps> = ({
   isOpen,
   onClose,
@@ -30,16 +42,17 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
   trainers,
   initialData
 }) => {
-  const [formData, setFormData] = useState({
-    coursename: '',
-    imageurl: '',
-    personaltrainer: '',
-    durationweek: '', // keep as string for input
-    description: '',
-    schedules: [] as string[],
-    price: '', // keep as string for input
-    serviceid: '' // add serviceid
-  });
+
+const [formData, setFormData] = useState<FormData>({
+  coursename: '',
+  imageurl: '',
+  personaltrainer: '',
+  durationweek: '',
+  description: '',
+  schedules: [],
+  price: '',
+  serviceid: ''
+});
 
   React.useEffect(() => {
     if (initialData) {
@@ -49,9 +62,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
         personaltrainer: initialData.personaltrainerid || initialData.personaltrainername || '',
         durationweek: initialData.durationweek?.toString() || '',
         description: initialData.description || '',
-        schedules: Array.isArray(initialData.schedules)
-          ? initialData.schedules.map((s: any) => s.scheduleid || s.id || s)
-          : [],
+        schedules: initialData.schedules as unknown as string[],
         price: initialData.price?.toString() || '',
         serviceid: initialData.serviceid || ''
       });
@@ -69,7 +80,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     }
   }, [initialData, isOpen]);
   
-  const [allSchedules, setAllSchedules] = useState<any[]>([]);
+  const [allSchedules, setAllSchedules] = useState<Schedule[]>([]);
   const [services, setServices] = useState<any[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -103,7 +114,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
           personaltrainer: formData.personaltrainer,
           durationweek: parseInt(formData.durationweek) || 0,
           description: formData.description,
-          trainername: selectedTrainer?.name || '',
+          trainername: selectedTrainer?.name || '',   
           schedules: formData.schedules,
           price: parseFloat(formData.price) || 0,
           serviceid: formData.serviceid,
@@ -392,16 +403,18 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
             </label>
             <div className="border rounded-lg p-2 max-h-40 overflow-y-auto bg-white">
               {allSchedules.map(sch => {
-                const id = sch.scheduleID || sch.scheduleid;
-                const label = `${sch.dayOfWeek || sch.dayofweek} ${sch.startTime ? new Date(sch.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} - ${sch.endTime ? new Date(sch.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}`;
+                const id = sch.scheduleID;
+                const label = `${sch.dayOfWeek} ${sch.startTime} - ${sch.endTime}`;
                 return (
                   <label key={id} className="flex items-center gap-2 py-1 cursor-pointer">
                     <input
                       type="checkbox"
                       value={id}
                       checked={formData.schedules.includes(id)}
+                      disabled={!!initialData}
                       onChange={e => {
                         const checked = e.target.checked;
+
                         setFormData(prev => ({
                           ...prev,
                           schedules: checked
@@ -419,8 +432,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
             {formData.schedules.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {formData.schedules.map(sid => {
-                  const sch = allSchedules.find(s => (s.scheduleID || s.scheduleid) === sid);
-                  const label = sch ? `${sch.dayOfWeek || sch.dayofweek} ${sch.startTime ? new Date(sch.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} - ${sch.endTime ? new Date(sch.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}` : sid;
+                  const sch = allSchedules.find(s => s.scheduleID === sid);
+                  const label = sch ? `${sch.dayOfWeek} ${sch.startTime} - ${sch.endTime}` : sid;
                   return (
                     <span key={sid} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">{label}</span>
                   );

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace gym_be.Models.Entities
@@ -17,10 +17,12 @@ namespace gym_be.Models.Entities
         public int MaxParticipants { get; set; }
 
         [Column("starttime")]
-        public DateTime StartTime { get; set; }
+        [MaxLength(5)]
+        public string StartTime { get; set; }  
 
         [Column("endtime")]
-        public DateTime EndTime { get; set; }
+        [MaxLength(5)]
+        public string EndTime { get; set; }    
 
         public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }

@@ -67,7 +67,7 @@ namespace gym_be.Services.Implementations
                 .Select(s => new ScheduleOptionDto
                 {
                     Value = s.ScheduleID,
-                    Label = $"{s.DayOfWeek} | {s.StartTime:HH:mm} - {s.EndTime:HH:mm}"
+                    Label = $"{s.DayOfWeek} | {s.StartTime} - {s.EndTime}"
                 })
                 .ToListAsync();
         }
@@ -77,8 +77,8 @@ namespace gym_be.Services.Implementations
             if (schedule == null) throw new Exception("Schedule not found");
 
             schedule.DayOfWeek = dto.DayOfWeek;
-            schedule.StartTime = DateTime.Parse(dto.StartTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
-            schedule.EndTime = DateTime.Parse(dto.EndTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+            schedule.StartTime = dto.StartTime;
+            schedule.EndTime = dto.EndTime;
             schedule.MaxParticipants = dto.MaxParticipants;
 
             await _repository.SaveChangesAsync();

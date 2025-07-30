@@ -92,8 +92,8 @@ const ScheduleManagement: React.FC = () => {
     const payload = {
       dayOfWeek: formData.dayOfWeek,
       maxParticipants: formData.maxParticipants,
-      startTime: new Date(formData.startTime).toISOString(),
-      endTime: new Date(formData.endTime).toISOString(),
+      startTime: formData.startTime,
+      endTime: formData.endTime,
     };
     try {
       if (modalMode === "edit" && selectedSchedule) {
@@ -157,12 +157,8 @@ const ScheduleManagement: React.FC = () => {
   };
 
   const formatTime = (timeString: string) => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    if (/^\d{2}:\d{2}$/.test(timeString)) return timeString;
+    return "";
   };
 
   const getDayColor = (day: string) => {
@@ -205,18 +201,11 @@ const ScheduleManagement: React.FC = () => {
   // Khi mở modal edit, tự động load dữ liệu cũ vào form
   useEffect(() => {
     if (modalMode === "edit" && selectedSchedule) {
-      const formatForInput = (iso: string) => {
-        const date = new Date(iso);
-        const pad = (n: number) => n.toString().padStart(2, "0");
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-          date.getDate()
-        )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-      };
       setFormData({
         dayOfWeek: selectedSchedule.dayOfWeek,
         maxParticipants: selectedSchedule.maxParticipants,
-        startTime: formatForInput(selectedSchedule.startTime),
-        endTime: formatForInput(selectedSchedule.endTime),
+        startTime: selectedSchedule.startTime, // gán trực tiếp chuỗi hh:mm
+        endTime: selectedSchedule.endTime,     // gán trực tiếp chuỗi hh:mm
       });
     }
   }, [modalMode, selectedSchedule]);
@@ -581,7 +570,7 @@ const ScheduleManagement: React.FC = () => {
                       <div className="relative">
                         <Clock className="h-5 w-5 text-green-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                         <input
-                          type="datetime-local"
+                          type="time"
                           id="starttime"
                           name="startTime"
                           value={formData.startTime}
@@ -602,7 +591,7 @@ const ScheduleManagement: React.FC = () => {
                       <div className="relative">
                         <Clock className="h-5 w-5 text-red-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                         <input
-                          type="datetime-local"
+                          type="time"
                           id="endtime"
                           name="endTime"
                           value={formData.endTime}
