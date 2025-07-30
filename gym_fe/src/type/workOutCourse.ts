@@ -7,9 +7,11 @@ export interface WorkoutCourse {
   personaltrainername: string;
   durationweek: number | string;
   description: string;
-  schedules: Schedule[];
+  schedules: string[];
   trainername?: string;
   serviceid: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 

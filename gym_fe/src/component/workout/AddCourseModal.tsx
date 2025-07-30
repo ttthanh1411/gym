@@ -25,14 +25,16 @@ interface AddCourseModalProps {
 }
 
 interface FormData {
-coursename: string;
-imageurl: string;
-personaltrainer: string;
-durationweek: string;
-description: string;
-schedules: string[];
-price: string;
-serviceid: string;
+  coursename: string;
+  imageurl: string;
+  personaltrainer: string;
+  durationweek: string;
+  description: string;
+  schedules: string[];
+  price: string;
+  serviceid: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 export const AddCourseModal: React.FC<AddCourseModalProps> = ({
@@ -51,7 +53,9 @@ const [formData, setFormData] = useState<FormData>({
   description: '',
   schedules: [],
   price: '',
-  serviceid: ''
+  serviceid: '',
+  startDate: new Date(),
+  endDate: new Date(),
 });
 
   React.useEffect(() => {
@@ -64,7 +68,9 @@ const [formData, setFormData] = useState<FormData>({
         description: initialData.description || '',
         schedules: initialData.schedules as unknown as string[],
         price: initialData.price?.toString() || '',
-        serviceid: initialData.serviceid || ''
+        serviceid: initialData.serviceid || '',
+        startDate: initialData.startDate ? new Date(initialData.startDate) : new Date(),
+        endDate: initialData.endDate ? new Date(initialData.endDate) : new Date(),
       });
     } else {
       setFormData({
@@ -75,7 +81,9 @@ const [formData, setFormData] = useState<FormData>({
         description: '',
         schedules: [],
         price: '',
-        serviceid: ''
+        serviceid: '',
+        startDate: new Date(),
+        endDate: new Date(),
       });
     }
   }, [initialData, isOpen]);
@@ -96,11 +104,28 @@ const [formData, setFormData] = useState<FormData>({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      let updated = { ...prev };
+      if (name === 'startDate') {
+        updated.startDate = new Date(value);
+        updated.endDate = calcEndDate(new Date(value), prev.durationweek);
+      } else if (name === 'durationweek') {
+        updated.durationweek = value;
+        updated.endDate = calcEndDate(prev.startDate, value);
+      } else {
+        updated[name] = value;
+      }
+      return updated;
+    });
   };
+
+// Hàm tính endDate dựa vào startDate và durationweek
+function calcEndDate(startDate: Date, durationweek: string): Date {
+  if (!startDate || !durationweek || isNaN(Number(durationweek))) return new Date();
+  const start = new Date(startDate);
+  start.setDate(start.getDate() + Number(durationweek) * 7);
+  return start;
+}
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,6 +159,8 @@ const [formData, setFormData] = useState<FormData>({
           schedules: formData.schedules,
           price: parseFloat(formData.price) || 0,
           serviceid: formData.serviceid, // add serviceid if present
+          startDate: formData.startDate,
+          endDate: formData.endDate,
         };
         onAddCourse(newCourse);
         // Reset form after adding
@@ -141,9 +168,13 @@ const [formData, setFormData] = useState<FormData>({
           coursename: '',
           imageurl: '',
           personaltrainer: '',
-          durationweek: 1,
+          durationweek: '',
           description: '',
           schedules: [],
+          price: '',
+          serviceid: '',
+          startDate: new Date(),
+          endDate: new Date(),
         });
       }
       setErrors({});
@@ -201,6 +232,10 @@ const [formData, setFormData] = useState<FormData>({
       durationweek: 1,
       description: '',
       schedules: [],
+      price: '',
+      serviceid: '',
+      startDate: '',
+      endDate: '',
     });
     setErrors({});
     onClose();
@@ -370,6 +405,37 @@ const [formData, setFormData] = useState<FormData>({
               <p className="text-gray-500 text-sm ml-auto">
                 {formData.description.length}/256 characters
               </p>
+            </div>
+          </div>
+
+          {/* Start Date & End Date */}
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4" />
+                Ngày bắt đầu
+              </label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate instanceof Date ? formData.startDate.toISOString().slice(0,10) : ''}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                disabled={!!initialData}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4" />
+                Ngày kết thúc
+              </label>
+              <input
+                type="date"
+                name="endDate"
+                value={formData.endDate instanceof Date ? formData.endDate.toISOString().slice(0,10) : ''}
+                readOnly
+                className="w-full px-4 py-3 border rounded-lg bg-gray-100 cursor-not-allowed"
+              />
             </div>
           </div>
 

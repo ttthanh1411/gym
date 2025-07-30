@@ -27,7 +27,9 @@ namespace gym_be.Services
                 PersonalTrainerName = course.PersonalTrainer?.Name,
                 Schedules = course.Schedules,
                 Price = course.Price,
-                ServiceId = course.ServiceId // map serviceid
+                ServiceId = course.ServiceId, // map serviceid
+                StartDate = course.StartDate,
+                EndDate = course.EndDate
             }).ToList();
         }
 
@@ -48,7 +50,9 @@ namespace gym_be.Services
                 PersonalTrainerName = course.PersonalTrainer?.Name,
                 Schedules = course.Schedules,
                 Price = course.Price,
-                ServiceId = course.ServiceId // map serviceid
+                ServiceId = course.ServiceId, // map serviceid
+                StartDate = course.StartDate,
+                EndDate = course.EndDate
             };
         }
 
@@ -64,7 +68,9 @@ namespace gym_be.Services
                 Description = workoutCourseDto.Description,
                 Schedules = workoutCourseDto.Schedules ?? new List<Guid>(),
                 Price = workoutCourseDto.Price,
-                ServiceId = workoutCourseDto.ServiceId // map serviceid
+                ServiceId = workoutCourseDto.ServiceId, // map serviceid
+                StartDate = workoutCourseDto.StartDate,
+                EndDate = workoutCourseDto.EndDate
             };
             await _workoutCourseRepository.CreateWorkoutCourseAsync(workoutCourse);
         }
@@ -82,6 +88,8 @@ namespace gym_be.Services
                 workoutCourse.Schedules = workoutCourseDto.Schedules ?? new List<Guid>();
                 workoutCourse.Price = workoutCourseDto.Price;
                 workoutCourse.ServiceId = workoutCourseDto.ServiceId; // map serviceid
+                workoutCourse.StartDate = workoutCourseDto.StartDate;
+                workoutCourse.EndDate = workoutCourseDto.EndDate;
                 await _workoutCourseRepository.UpdateWorkoutCourseAsync(workoutCourse);
                 // Map updated entity to DTO (including trainer name if needed)
                 return new WorkoutCourseDto
@@ -95,7 +103,9 @@ namespace gym_be.Services
                     PersonalTrainerName = workoutCourse.PersonalTrainer?.Name,
                     Schedules = workoutCourse.Schedules,
                     Price = workoutCourse.Price,
-                    ServiceId = workoutCourse.ServiceId
+                    ServiceId = workoutCourse.ServiceId,
+                    StartDate = workoutCourse.StartDate,
+                    EndDate = workoutCourse.EndDate
                 };
             }
             return null;

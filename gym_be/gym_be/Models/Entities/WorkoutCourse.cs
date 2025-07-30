@@ -1,4 +1,4 @@
-﻿using gym_be.Models.Entities;
+using gym_be.Models.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -37,4 +37,10 @@ public class WorkoutCourse
 
     [Column("serviceid")]
     public Guid ServiceId { get; set; }
+
+    [Column("startdate")]
+    public DateTime StartDate { get; set; }
+
+    [Column("enddate")]
+    public DateTime EndDate { get; set; }
 }

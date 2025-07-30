@@ -108,8 +108,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
               </div>
               <ul className="list-disc pl-6 text-gray-700">
                 {courseSchedules.map((sch, idx) => (
-                  <li key={sch.scheduleID || sch.scheduleid}>
-                    {(sch.dayOfWeek || sch.dayofweek)} {sch.startTime ? new Date(sch.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} - {sch.endTime ? new Date(sch.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                  <li key={sch?.scheduleID}>
+                    {(sch?.dayOfWeek )} {sch?.startTime} - {sch?.endTime}
                   </li>
                 ))}
               </ul>

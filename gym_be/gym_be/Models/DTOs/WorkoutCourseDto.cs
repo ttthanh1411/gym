@@ -1,4 +1,4 @@
-﻿namespace gym_be.Models.DTOs
+namespace gym_be.Models.DTOs
 {
     public class WorkoutCourseDto
     {
@@ -12,5 +12,7 @@
         public decimal Price { get; set; }
         public Guid ServiceId { get; set; }
         public List<Guid> Schedules { get; set; } = new List<Guid>();
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
     }
 }
