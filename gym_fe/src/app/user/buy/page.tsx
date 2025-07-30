@@ -1,24 +1,26 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 import {
   Check,
   Clock,
   Filter,
   Heart,
+  Info,
   Plus,
   Search,
   ShoppingCart,
   Users,
   Zap,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CourseModal } from "@/component/workout/CourseModal";
 
-import { useUser } from '../../../context/UserContext';
-import { fetchAllServices } from '../../../service/serviceService';
-import { fetchWorkoutCourses } from '../../../service/workOutCourse';
-import { Service } from '../../../type/service';
+import { useUser } from "../../../context/UserContext";
+import { fetchAllServices } from "../../../service/serviceService";
+import { fetchWorkoutCourses } from "../../../service/workOutCourse";
+import { Service } from "../../../type/service";
 
 // Toast helper
 function showToast(message: string) {
@@ -65,9 +67,16 @@ export default function BuyCoursePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popular");
   const [courses, setCourses] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<string[]>(["Tất cả"]);
+
+  const handleViewDetails = (course: any) => {
+    setSelectedCourse(course);
+    setIsModalOpen(true);
+  };
   const router = useRouter();
   // Thêm state cho user
   const { user } = useUser();
@@ -134,7 +143,7 @@ export default function BuyCoursePage() {
     const idx = cartItems.findIndex(
       (item: any) => item.id === (course.courseid || course.id)
     );
-    const service = services.find(s => s.serviceID === course.serviceid);
+    const service = services.find((s) => s.serviceID === course.serviceid);
     const servicePrice = service?.servicePrice || 0;
 
     if (idx === -1) {
@@ -162,7 +171,7 @@ export default function BuyCoursePage() {
     const idx = cartItems.findIndex(
       (item: any) => item.id === (course.courseid || course.id)
     );
-    const service = services.find(s => s.serviceID === course.serviceid);
+    const service = services.find((s) => s.serviceID === course.serviceid);
     const servicePrice = service?.servicePrice || 0;
     if (idx === -1) {
       cartItems.push({
@@ -177,8 +186,6 @@ export default function BuyCoursePage() {
     }
     router.push("/user/cart");
   };
-
-
 
   return (
     <div className="space-y-6 max-w-full">
@@ -227,10 +234,11 @@ export default function BuyCoursePage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
-                ? "bg-emerald-100 text-emerald-700 border-2 border-emerald-200"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-2 border-transparent"
-                }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === category
+                  ? "bg-emerald-100 text-emerald-700 border-2 border-emerald-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-2 border-transparent"
+              }`}
             >
               {category}
             </button>
@@ -246,7 +254,9 @@ export default function BuyCoursePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedCourses.map((course: any) => {
-            const service = services.find(s => s.serviceID === course.serviceid);
+            const service = services.find(
+              (s) => s.serviceID === course.serviceid
+            );
             const isRecommended = recommendedIds.includes(
               course.courseid || course.id
             );
@@ -285,7 +295,6 @@ export default function BuyCoursePage() {
                       {course.level || "Cơ bản"}
                     </span>
                     <div className="flex items-center">
-
                       <span className="text-sm font-medium text-gray-700 ml-1">
                         {course.rating || ""}
                       </span>
@@ -346,15 +355,26 @@ export default function BuyCoursePage() {
                           </div>
                           <div className="flex items-center">
                             <span className="font-semibold">Giá dịch vụ:</span>
-                            <span className="ml-1">{service.servicePrice.toLocaleString()}₫</span>
+                            <span className="ml-1">
+                              {service.servicePrice.toLocaleString()}₫
+                            </span>
                           </div>
                         </div>
                       )}
                       <div className="flex items-center text-sm">
                         <span className="font-semibold">Huấn luyện viên:</span>
-                        <span className="ml-1">{course.personaltrainername || course.instructor}</span>
+                        <span className="ml-1">
+                          {course.personaltrainername || course.instructor}
+                        </span>
                       </div>
                     </div>
+                  </div>
+
+                  <div
+                    onClick={() => handleViewDetails(course)}
+                    className="mb-4 max-w-fit px-2 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 mt-4 cursor-pointer"
+                  >
+                    Chi tiết
                   </div>
 
                   <div className="flex space-x-2">
@@ -392,6 +412,13 @@ export default function BuyCoursePage() {
             Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc.
           </p>
         </div>
+      )}
+      {selectedCourse && (
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          course={selectedCourse}
+        />
       )}
     </div>
   );

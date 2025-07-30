@@ -48,6 +48,23 @@ export interface Schedule {
   courseName: string;
   teacherName: string;
 }
+
+export type ScheduleDetail = {
+  scheduleId: string;
+  dayOfWeek: 'Chủ nhật' | 'Thứ 2' | 'Thứ 3' | 'Thứ 4' | 'Thứ 5' | 'Thứ 6' | 'Thứ 7';
+  startTime: string; // Format: 'HH:mm'
+  endTime: string;   // Format: 'HH:mm'
+};
+
+export type ScheduleResponse = {
+  courseId: string;
+  teacherName: string;
+  courseName: string;
+  courseStartDate: string; // ISO format date string
+  courseEndDate: string;   // ISO format date string
+  duration: number;        // in weeks
+  schedules: Schedule[];
+};
 interface PaymentHistory {
   paymentId: string;
   courseId: string;
@@ -110,7 +127,7 @@ class PaymentService {
     return response.json();
   }
 
-  async getMySchedules(customerId: string): Promise<Schedule[]> {
+  async getMySchedules(customerId: string): Promise<ScheduleResponse[]> {
     const response = await fetch(`${this.baseUrl}/my-schedules/${customerId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },

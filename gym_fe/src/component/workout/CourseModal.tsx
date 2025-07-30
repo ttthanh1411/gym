@@ -92,7 +92,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
               <FileText className="w-5 h-5 text-gray-600" />
-              <h3 className="text-xl font-semibold text-gray-900">Description</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Mô tả</h3>
             </div>
             <p className="text-gray-700 leading-relaxed">
               {course.description}
@@ -104,7 +104,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-5 h-5 text-gray-600" />
-                <h3 className="text-xl font-semibold text-gray-900">Schedules</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Lịch học</h3>
               </div>
               <ul className="list-disc pl-6 text-gray-700">
                 {courseSchedules.map((sch, idx) => (
@@ -116,7 +116,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
             </div>
           )}
 
-          <div className="flex gap-4">
+          {/* <div className="flex gap-4">
             <button className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200">
               Enroll Now
             </button>
@@ -126,7 +126,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClos
             >
               Close
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

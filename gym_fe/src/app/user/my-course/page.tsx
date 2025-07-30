@@ -18,8 +18,17 @@ import {
   LoaderPinwheel,
 } from "lucide-react";
 import AuthService from "@/service/authService";
-import { format, isSameDay } from "date-fns";
-import PaymentService, { Schedule } from "@/service/paymentService";
+import {
+  format,
+  isAfter,
+  isBefore,
+  isSameDay,
+  isWithinInterval,
+} from "date-fns";
+import PaymentService, {
+  Schedule,
+  ScheduleResponse,
+} from "@/service/paymentService";
 import { useEffect as useEffectReact, useState as useStateReact } from "react";
 import { fetchAllServices } from "../../../service/serviceService";
 import { Service } from "../../../type/service";
@@ -27,6 +36,8 @@ import { Service } from "../../../type/service";
 const weekDays = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
 import { useSearchParams } from "next/navigation";
+import { ScheduleCourse } from "../page";
+import { DAY_OF_WEEK } from "@/utils/date.utils";
 
 export default function SchedulePage() {
   const searchParams = useSearchParams();
@@ -36,7 +47,10 @@ export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<"calendar" | "list">("list");
   const [myCourses, setMyCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [schedules, setSchedules] = useState<
+    (ScheduleCourse & { validDates: string[] })[]
+  >([]);
+  const [scheduleCourse, setScheduleCourse] = useState<ScheduleResponse[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(false);
   // Modal state
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
@@ -73,7 +87,52 @@ export default function SchedulePage() {
       });
     PaymentService.getMySchedules(customerId)
       .then((data) => {
-        setSchedules(data);
+        setScheduleCourse(data);
+
+        const formattedData: (ScheduleCourse & { validDates: string[] })[] =
+          data.reduce((acc, course: ScheduleResponse) => {
+            const schedules = course.schedules.map((schedule) => {
+              const inRangeDates = [];
+
+              const startDate = new Date(course.courseStartDate);
+              const endDate = new Date(course.courseEndDate);
+
+              let currentDate = startDate;
+
+              while (currentDate <= endDate) {
+                inRangeDates.push(new Date(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+              }
+
+              const validDates = inRangeDates
+                .filter((date) => {
+                  if (
+                    schedule.dayOfWeek ===
+                    DAY_OF_WEEK[date.getDay() as keyof typeof DAY_OF_WEEK]
+                  ) {
+                    return date;
+                  }
+                })
+                .map((date) => format(date, "yyyy-MM-dd"));
+
+              return {
+                id: schedule.scheduleId,
+                dayOfWeek: schedule.dayOfWeek,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+                courseName: course.courseName,
+                courseStartDate: course.courseStartDate,
+                courseEndDate: course.courseEndDate,
+                teacherName: course.teacherName,
+                courseId: course.courseId,
+                validDates,
+              };
+            });
+            acc.push(...schedules);
+            return acc;
+          }, [] as any[]);
+
+        setSchedules(formattedData);
         setLoadingSchedules(false);
       })
       .catch((error) => {
@@ -101,11 +160,8 @@ export default function SchedulePage() {
   };
 
   const hasSchedule = (date: Date) => {
-    return schedules.some((schedule) => {
-      const scheduleDate = new Date(schedule.startTime);
-      return (
-        isSameDay(scheduleDate, date)
-      );
+    return schedules?.some((s) => {
+      return s.validDates.includes(format(date, "yyyy-MM-dd"));
     });
   };
 
@@ -211,16 +267,15 @@ export default function SchedulePage() {
 
           <div className="grid grid-cols-7 gap-1">
             {calendarDays.map((day, index) => {
-              const isSelected =
-                selectedDate &&
-                isSameDay(day, selectedDate);
+              const isSelected = selectedDate && isSameDay(day, selectedDate);
+              const valid = hasSchedule(day);
               return (
                 <div
                   key={index}
                   className={[
                     "p-3 text-center text-sm border transition-colors cursor-pointer",
                     isSelected ? "bg-blue-50 text-blue-600 font-medium" : "",
-                    hasSchedule(day)
+                    valid
                       ? "bg-blue-100 text-blue-700 font-semibold border-blue-300"
                       : "border-gray-100 hover:bg-gray-50",
                   ].join(" ")}
@@ -228,7 +283,7 @@ export default function SchedulePage() {
                 >
                   <div className="relative">
                     {format(day, "d")}
-                    {hasSchedule(day) && (
+                    {valid && (
                       <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </div>
@@ -246,10 +301,16 @@ export default function SchedulePage() {
               </h4>
               <ul className="space-y-3">
                 {schedules.filter((sch) => {
-                  const schDate = new Date(sch.startTime);
-                  return (
-                    isSameDay(schDate, selectedDate)
-                  );
+                  const valid =
+                    sch.dayOfWeek ===
+                      DAY_OF_WEEK[
+                        new Date(
+                          selectedDate
+                        ).getDay() as keyof typeof DAY_OF_WEEK
+                      ] &&
+                    isBefore(selectedDate, new Date(sch.courseEndDate)) &&
+                    isAfter(selectedDate, new Date(sch.courseStartDate));
+                  return valid;
                 }).length === 0 ? (
                   <li className="text-gray-500 italic">
                     Không có lịch tập nào cho ngày này.
@@ -257,32 +318,37 @@ export default function SchedulePage() {
                 ) : (
                   schedules
                     .filter((sch) => {
-                      const schDate = new Date(sch.startTime);
-                      return (
-                        isSameDay(schDate, selectedDate)
-                      );
+                      const valid =
+                        sch.dayOfWeek ===
+                          DAY_OF_WEEK[
+                            new Date(
+                              selectedDate
+                            ).getDay() as keyof typeof DAY_OF_WEEK
+                          ] &&
+                        isBefore(selectedDate, new Date(sch.courseEndDate)) &&
+                        isAfter(selectedDate, new Date(sch.courseStartDate));
+                      return valid;
                     })
                     .map((sch, idx) => (
                       <li
                         key={idx}
-                        className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+                        className="bg-white max-w-fit border border-gray-100 rounded-lg px-4 py-3 flex-col md:flex-row md:items-center md:justify-between gap-2"
                       >
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span className="font-medium">{sch.courseName || "Lớp tập"}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          {sch.teacherName && (
-                            <span>
-                              <Users className="inline-block w-4 h-4 mr-1" />{" "}
-                              {sch.teacherName}
+                        <div className="">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-blue-800">
+                              Khoá tập: {sch.courseName || "Lớp tập"}
                             </span>
-                          )}
+                          </div>
+                          <div className="flex items-center gap-1 text-gray-500">
+                            <Users className="w-4 h-4" />
+                            <span>Huấn luyện viên: {sch.teacherName}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Clock className="w-5 h-5 text-blue-600" />
                           <span className="font-medium text-blue-800">
-                            {format(new Date(sch.startTime), "HH:mm")} {" - "} 
-                            {format(new Date(sch.endTime), "HH:mm")}
+                            {sch.startTime} - {sch.endTime}
                           </span>
                         </div>
                       </li>

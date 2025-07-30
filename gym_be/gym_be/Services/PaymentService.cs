@@ -174,17 +174,24 @@ namespace gym_be.Services
                 .ToDictionary(c => c.CustomerID, c => c.Name);
 
             // Trả về schedule kèm tên giáo viên và tên khoá học
-            var result = schedules.Select(s => new {
-                scheduleId = s.ScheduleID,
-                dayOfWeek = s.DayOfWeek,
-                maxParticipants = s.MaxParticipants,
-                startTime = s.StartTime,
-                endTime = s.EndTime,
-                courseId = scheduleCourseMap[s.ScheduleID].CourseId,
-                courseName = courses.FirstOrDefault(c => c.CourseId == scheduleCourseMap[s.ScheduleID].CourseId)?.CourseName ?? "Không rõ",
-                teacherName = trainers.ContainsKey(scheduleCourseMap[s.ScheduleID].PersonalTrainerId)
-                    ? trainers[scheduleCourseMap[s.ScheduleID].PersonalTrainerId]
-                    : "Không rõ"
+            var result = courses.Select(c => new {
+                teacherName = trainers.ContainsKey(c.PersonalTrainerId)
+                    ? trainers[c.PersonalTrainerId]
+                    : "Không rõ",
+                courseId = c.CourseId,
+                courseName = c.CourseName,
+                courseStartDate = c.StartDate,
+                courseEndDate = c.EndDate,
+                duration = c.DurationWeek,
+                schedules = schedules
+                    .Where(s => c.Schedules.Contains(s.ScheduleID))
+                    .Select(s => new {
+                        scheduleId = s.ScheduleID,
+                        dayOfWeek = s.DayOfWeek,
+                        startTime = s.StartTime,
+                        endTime = s.EndTime
+                    })
+                    .ToList()
             }).ToList();
 
             return result;

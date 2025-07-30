@@ -16,15 +16,27 @@ import {
 import Chatbot from "react-chatbot-kit";
 
 import AuthService from "@/service/authService";
-import PaymentService from "@/service/paymentService";
+import PaymentService, { ScheduleResponse } from "@/service/paymentService";
 import AppointmentService from "@/service/appointmentService";
 
 import ActionProvider from "./ActionProvider";
 import config from "./config";
 import MessageParser from "./MessageParser";
 import Link from "next/link";
-import { isSameDay } from "@/utils/date.utils";
-import { format } from "date-fns";
+import { isSameDay, isTodayValidForCourse, DAY_OF_WEEK, isWithinCurrentWeek } from "@/utils/date.utils";
+import { format, isToday } from "date-fns";
+
+export type ScheduleCourse = {
+  id: string;
+  dayOfWeek: 'Chủ nhật' | 'Thứ 2' | 'Thứ 3' | 'Thứ 4' | 'Thứ 5' | 'Thứ 6' | 'Thứ 7';
+  startTime: string; // 'HH:mm'
+  endTime: string;   // 'HH:mm'
+  courseName: string;
+  courseStartDate: string; // ISO format e.g., '2025-08-03T00:00:00Z'
+  courseEndDate: string;   // ISO format
+  teacherName: string;
+  courseId: string;
+};
 
 export default function UserDashboard() {
   const router = require("next/navigation").useRouter();
@@ -56,7 +68,7 @@ export default function UserDashboard() {
   const [statsError, setStatsError] = useState<string | null>(null);
 
   // State for schedules
-  const [schedules, setSchedules] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleCourse[]>([]);
   const [loadingSchedules, setLoadingSchedules] = useState(true);
 
   // State for appointments
@@ -107,7 +119,26 @@ export default function UserDashboard() {
     setLoadingSchedules(true);
     PaymentService.getMySchedules(customerId)
       .then((data) => {
-        setSchedules(data);
+        const formattedData: ScheduleCourse[] = data.reduce((acc, course: ScheduleResponse) => {
+          const schedules = course.schedules.map((schedule) => ({
+            id: schedule.scheduleId,
+            dayOfWeek: schedule.dayOfWeek,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            courseName: course.courseName,
+            courseStartDate: course.courseStartDate,
+            courseEndDate: course.courseEndDate,
+            teacherName: course.teacherName,
+            courseId: course.courseId
+          }));
+          acc.push(...schedules);
+          return acc;
+        }, [] as any[]);
+
+
+        console.log(formattedData);
+        
+        setSchedules(formattedData);
         setLoadingSchedules(false);
       })
       .catch((error) => {
@@ -176,7 +207,11 @@ export default function UserDashboard() {
           <p className="text-emerald-100 text-lg">
             Hôm nay bạn có{" "}
             {
-              schedules.filter((s) => isSameDay(new Date(), new Date(s.date)))
+              schedules.filter((s) => isTodayValidForCourse({
+                courseStartDate: s.courseStartDate,
+                courseEndDate: s.courseEndDate,
+                dayOfWeek: s.dayOfWeek
+              }))
                 .length
             }{" "}
             buổi tập. Hãy cùng chinh phục mục tiêu fitness của mình!
@@ -259,9 +294,32 @@ export default function UserDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {schedules.slice(0, 3).map((schedule: any) => (
+               {schedules
+                  .filter((schedule: ScheduleCourse) => {
+                    const today = new Date();
+                    const dayOfWeekNumeric = Object.keys(DAY_OF_WEEK).find(key => DAY_OF_WEEK[key as unknown as keyof typeof DAY_OF_WEEK] === schedule.dayOfWeek);
+
+                    if (dayOfWeekNumeric === undefined) {
+                      return false;
+                    }
+
+                    const targetDay = parseInt(dayOfWeekNumeric as string);
+                    const currentDay = today.getDay();
+                    const diff = (targetDay - currentDay + 7) % 7;
+
+                    const scheduleDate = new Date(today);
+                    scheduleDate.setDate(today.getDate() + diff);
+
+                    return isWithinCurrentWeek(scheduleDate) && isTodayValidForCourse({
+                      courseStartDate: schedule.courseStartDate,
+                      courseEndDate: schedule.courseEndDate,
+                      dayOfWeek: schedule.dayOfWeek
+                    });
+                  })
+                  .slice(0, 3)
+                  .map((schedule: ScheduleCourse) => (
                   <div
-                    key={schedule.scheduleId}
+                    key={schedule.id}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex-1">
@@ -274,13 +332,13 @@ export default function UserDashboard() {
                       </p>
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="mr-1">🕒</span>
-                        {/* <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
                           {schedule.dayOfWeek}
-                        </span> */}
+                        </span>
                         <div className="flex flex-col text-xs text-gray-500">
                           <div className="flex items-center pl-4">
-                            {format(new Date(schedule.startTime), "yyyy-MM-dd HH:mm")} {" - "} 
-                            {format(new Date(schedule.endTime), "HH:mm")}
+                            {schedule.startTime} {" - "} 
+                            {schedule.endTime}
                           </div>
                         </div>
                       </div>
