@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   Bell,
@@ -14,20 +17,23 @@ import {
   ShoppingCart,
   User,
   X,
-} from "lucide-react";
+} from 'lucide-react';
+import Link from 'next/link';
+import {
+  usePathname,
+  useRouter,
+} from 'next/navigation';
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-
-import ChatbotWidget from "@/component/ChatbotWidget";
-import { cn } from "@/lib/utils";
-import AuthService from "@/service/authService";
+import ChatbotWidget from '@/component/ChatbotWidget';
+import { cn } from '@/lib/utils';
+import AuthService from '@/service/authService';
 
 const navigation = [
   { name: "Trang chủ", href: "/user", icon: Home },
   { name: "Mua khóa tập", href: "/user/buy", icon: ShoppingCart },
   { name: "Khoá tập của tôi", href: "/user/my-course", icon: Calendar },
   { name: "Cuộc hẹn của tôi", href: "/user/my-appointment", icon: Calendar },
+  { name: "Chatbot AI", href: "/user/chatbot-ai", icon: Calendar },
   { name: "Thanh toán", href: "/user/payments", icon: CreditCard },
   { name: "Hồ sơ", href: "/user/profile", icon: User },
 ];
