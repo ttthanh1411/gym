@@ -23,17 +23,29 @@ import ActionProvider from "./ActionProvider";
 import config from "./config";
 import MessageParser from "./MessageParser";
 import Link from "next/link";
-import { isSameDay, isTodayValidForCourse, DAY_OF_WEEK, isWithinCurrentWeek } from "@/utils/date.utils";
-import { format, isToday } from "date-fns";
+import {
+  isSameDay,
+  isTodayValidForCourse,
+  DAY_OF_WEEK,
+  isWithinCurrentWeek,
+} from "@/utils/date.utils";
+import { format, isToday, isWithinInterval } from "date-fns";
 
 export type ScheduleCourse = {
   id: string;
-  dayOfWeek: 'Chủ nhật' | 'Thứ 2' | 'Thứ 3' | 'Thứ 4' | 'Thứ 5' | 'Thứ 6' | 'Thứ 7';
+  dayOfWeek:
+    | "Chủ nhật"
+    | "Thứ 2"
+    | "Thứ 3"
+    | "Thứ 4"
+    | "Thứ 5"
+    | "Thứ 6"
+    | "Thứ 7";
   startTime: string; // 'HH:mm'
-  endTime: string;   // 'HH:mm'
+  endTime: string; // 'HH:mm'
   courseName: string;
   courseStartDate: string; // ISO format e.g., '2025-08-03T00:00:00Z'
-  courseEndDate: string;   // ISO format
+  courseEndDate: string; // ISO format
   teacherName: string;
   courseId: string;
 };
@@ -119,25 +131,27 @@ export default function UserDashboard() {
     setLoadingSchedules(true);
     PaymentService.getMySchedules(customerId)
       .then((data) => {
-        const formattedData: ScheduleCourse[] = data.reduce((acc, course: ScheduleResponse) => {
-          const schedules = course.schedules.map((schedule) => ({
-            id: schedule.scheduleId,
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            courseName: course.courseName,
-            courseStartDate: course.courseStartDate,
-            courseEndDate: course.courseEndDate,
-            teacherName: course.teacherName,
-            courseId: course.courseId
-          }));
-          acc.push(...schedules);
-          return acc;
-        }, [] as any[]);
-
+        const formattedData: ScheduleCourse[] = data.reduce(
+          (acc, course: ScheduleResponse) => {
+            const schedules = course.schedules.map((schedule) => ({
+              id: schedule.scheduleId,
+              dayOfWeek: schedule.dayOfWeek,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              courseName: course.courseName,
+              courseStartDate: course.courseStartDate,
+              courseEndDate: course.courseEndDate,
+              teacherName: course.teacherName,
+              courseId: course.courseId,
+            }));
+            acc.push(...schedules);
+            return acc;
+          },
+          [] as any[]
+        );
 
         console.log(formattedData);
-        
+
         setSchedules(formattedData);
         setLoadingSchedules(false);
       })
@@ -207,12 +221,13 @@ export default function UserDashboard() {
           <p className="text-emerald-100 text-lg">
             Hôm nay bạn có{" "}
             {
-              schedules.filter((s) => isTodayValidForCourse({
-                courseStartDate: s.courseStartDate,
-                courseEndDate: s.courseEndDate,
-                dayOfWeek: s.dayOfWeek
-              }))
-                .length
+              schedules.filter((s) =>
+                isTodayValidForCourse({
+                  courseStartDate: s.courseStartDate,
+                  courseEndDate: s.courseEndDate,
+                  dayOfWeek: s.dayOfWeek,
+                })
+              ).length
             }{" "}
             buổi tập. Hãy cùng chinh phục mục tiêu fitness của mình!
           </p>
@@ -278,7 +293,7 @@ export default function UserDashboard() {
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">
-                Lịch tập của tôi
+                Lịch tập hôm nay
               </h3>
               <Calendar className="w-5 h-5 text-gray-400" />
             </div>
@@ -288,64 +303,76 @@ export default function UserDashboard() {
               <div className="text-center text-gray-500 py-8">
                 Đang tải lịch tập...
               </div>
-            ) : schedules.length === 0 ? (
+            ) : schedules.filter((schedule) =>
+                isTodayValidForCourse({
+                  courseStartDate: schedule.courseStartDate,
+                  courseEndDate: schedule.courseEndDate,
+                  dayOfWeek: schedule.dayOfWeek,
+                })
+              ).length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 Bạn chưa có lịch tập nào.
               </div>
             ) : (
               <div className="space-y-4">
-               {schedules
+                {schedules
                   .filter((schedule: ScheduleCourse) => {
-                    const today = new Date();
-                    const dayOfWeekNumeric = Object.keys(DAY_OF_WEEK).find(key => DAY_OF_WEEK[key as unknown as keyof typeof DAY_OF_WEEK] === schedule.dayOfWeek);
+                    // const today = new Date();
+                    // function getWeekRange(date: Date): {
+                    //   startOfWeek: Date;
+                    //   endOfWeek: Date;
+                    // } {
+                    //   const day = date.getDay(); // 0 (Sunday) to 6 (Saturday)
 
-                    if (dayOfWeekNumeric === undefined) {
-                      return false;
-                    }
+                    //   const startOfWeek = new Date(date);
+                    //   startOfWeek.setDate(date.getDate() - day);
+                    //   startOfWeek.setHours(0, 0, 0, 0);
 
-                    const targetDay = parseInt(dayOfWeekNumeric as string);
-                    const currentDay = today.getDay();
-                    const diff = (targetDay - currentDay + 7) % 7;
+                    //   const endOfWeek = new Date(date);
+                    //   endOfWeek.setDate(date.getDate() + (6 - day));
+                    //   endOfWeek.setHours(23, 59, 59, 999);
 
-                    const scheduleDate = new Date(today);
-                    scheduleDate.setDate(today.getDate() + diff);
+                    //   return { startOfWeek, endOfWeek };
+                    // }
 
-                    return isWithinCurrentWeek(scheduleDate) && isTodayValidForCourse({
+                    // const { startOfWeek, endOfWeek } = getWeekRange(today);
+
+                    return isTodayValidForCourse({
                       courseStartDate: schedule.courseStartDate,
                       courseEndDate: schedule.courseEndDate,
-                      dayOfWeek: schedule.dayOfWeek
+                      dayOfWeek: schedule.dayOfWeek,
                     });
                   })
                   .slice(0, 3)
                   .map((schedule: ScheduleCourse) => (
-                  <div
-                    key={schedule.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">Buổi tập</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Khóa tập: {schedule.courseName}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Tên giáo viên: {schedule.teacherName}
-                      </p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="mr-1">🕒</span>
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                          {schedule.dayOfWeek}
-                        </span>
-                        <div className="flex flex-col text-xs text-gray-500">
-                          <div className="flex items-center pl-4">
-                            {schedule.startTime} {" - "} 
-                            {schedule.endTime}
+                    <div
+                      key={schedule.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">Buổi tập</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Khóa tập: {schedule.courseName}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Tên giáo viên: {schedule.teacherName}
+                        </p>
+                        <div className="flex items-center mt-2 space-x-4">
+                          <span className="mr-1">🕒</span>
+                          <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                            {schedule.dayOfWeek}
+                          </span>
+                          <div className="flex flex-col text-xs text-gray-500">
+                            <div className="flex items-center pl-4">
+                              {schedule.startTime} {" - "}
+                              {schedule.endTime}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      {/* You can add a join or details button here if needed */}
                     </div>
-                    {/* You can add a join or details button here if needed */}
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
             <button
