@@ -45,50 +45,49 @@ function ChatBotAI() {
         return Math.random().toString(36).substr(2, 9);
     };
 
-    const callOpenRouterAI = async (message: string, history: any[]) => {
+    const callCohereAI = async (message: string, history: any[]) => {
         try {
-            console.log('Calling OpenRouter AI...');
+            console.log('Calling Cohere AI...');
 
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            // Build conversation history for Cohere
+            const conversationHistory = history.map((msg: any) => ({
+                role: msg.role === 'user' ? 'USER' : 'CHATBOT',
+                message: msg.content
+            }));
+
+            const response = await fetch('https://api.cohere.ai/v1/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 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',
-                    'HTTP-Referer': 'http://localhost:3002',
-                    'X-Title': 'Gym Booking Chatbot'
+                    'Authorization': 'Bearer 9mQf0yARKgQ8Hxv3r3kB89siZkRRHRIcSJLcIu6d',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'openai/gpt-4o',
-                    max_tokens: 3000,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'You are a helpful AI assistant. Answer questions clearly and accurately. Be friendly and engaging.'
-                        },
-                        ...history.map((msg: any) => ({
-                            role: msg.role,
-                            content: msg.content
-                        })),
-                        {
-                            role: 'user',
-                            content: message
-                        }
-                    ]
+                    model: 'command-r-plus',
+                    message: message,
+                    preamble: 'You are a helpful AI assistant for a gym booking system. Answer questions about fitness, gym services, appointments, and general health topics. Be friendly and engaging. Respond in Vietnamese when users speak Vietnamese.',
+                    conversation_id: 'gym-booking-chat',
+                    stream: false,
+                    citation_quality: 'accurate',
+                    connectors: [],
+                    documents: [],
+                    temperature: 0.7,
+                    max_tokens: 1000
                 })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('OpenRouter AI response received:', data);
+                console.log('Cohere AI response received:', data);
 
-                return data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+                return data.text || 'Sorry, I could not generate a response.';
             } else {
                 const errorData = await response.json();
-                console.log(`OpenRouter AI failed with status: ${response.status}`, errorData);
-                throw new Error(`OpenRouter API error: ${errorData.error?.message || 'Unknown error'}`);
+                console.log(`Cohere AI failed with status: ${response.status}`, errorData);
+                throw new Error(`Cohere AI error: ${errorData.message || 'Unknown error'}`);
             }
         } catch (error) {
-            console.log('OpenRouter AI error:', error);
+            console.log('Cohere AI error:', error);
             throw error;
         }
     };
@@ -108,8 +107,8 @@ function ChatBotAI() {
         setIsLoading(true);
 
         try {
-            // Call OpenRouter AI directly from frontend
-            const aiResponse = await callOpenRouterAI(userMessage.content, messages.map(msg => ({
+            // Call Cohere AI directly from frontend
+            const aiResponse = await callCohereAI(userMessage.content, messages.map(msg => ({
                 role: msg.role,
                 content: msg.content
             })));
