@@ -32,6 +32,7 @@ function ChatBotAI() {
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -134,6 +135,10 @@ function ChatBotAI() {
             setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
+            // Restore focus to textarea after sending message
+            setTimeout(() => {
+                textareaRef.current?.focus();
+            }, 100);
         }
     };
 
@@ -224,6 +229,7 @@ function ChatBotAI() {
                 <div className="flex space-x-4">
                     <div className="flex-1 relative">
                         <textarea
+                            ref={textareaRef}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyPress={handleKeyPress}
